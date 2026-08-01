@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { POSTS } from './data.js';
+import { POSTS, STATUS_PADRAO, MAX_FOTOS, MATRICULA_DIGITOS, statusInfo } from './data.js';
 import { loadState, saveState } from './storage.js';
-import { timeAgo, initials, courseAbbrev } from './time.js';
+import { timeAgo, initials, courseAbbrev, somenteDigitos, isEmailUFCG } from './time.js';
 
 const AppContext = createContext(null);
 
@@ -38,8 +38,17 @@ export function AppProvider({ children }) {
 
   function signup({ nome, email, senha, telefone, matricula, curso, campus, periodo }) {
     const emailNorm = email.trim().toLowerCase();
+    if (!isEmailUFCG(emailNorm)) {
+      return { ok: false, error: 'Use seu e-mail institucional da UFCG (o domínio precisa conter ".ufcg.").' };
+    }
+    if (somenteDigitos(matricula).length !== MATRICULA_DIGITOS) {
+      return { ok: false, error: `A matrícula precisa ter exatamente ${MATRICULA_DIGITOS} dígitos.` };
+    }
     if (state.users.some((u) => u.email === emailNorm)) {
       return { ok: false, error: 'Já existe uma conta com esse e-mail. Tente entrar.' };
+    }
+    if (state.users.some((u) => u.matricula === matricula)) {
+      return { ok: false, error: 'Já existe uma conta com essa matrícula.' };
     }
     const user = { nome: nome.trim(), email: emailNorm, senha, telefone, matricula, curso, campus, periodo };
     setState((s) => ({ ...s, users: s.users.concat(user), sessionEmail: emailNorm }));
@@ -61,9 +70,36 @@ export function AppProvider({ children }) {
   }
 
   const allPosts = useMemo(
-    () => state.createdPosts.concat(POSTS).filter((p) => !state.deletedPosts.includes(p.id)),
-    [state.createdPosts, state.deletedPosts]
+    () =>
+      state.createdPosts
+        .concat(POSTS)
+        .filter((p) => !state.deletedPosts.includes(p.id))
+        .map((p) => ({
+          ...p,
+          // Relatos salvos antes da galeria guardavam só o par foto/fotoLabel.
+          fotos: p.fotos || (p.foto ? [{ cat: p.cat, label: p.fotoLabel }] : []),
+          status: state.postStatus[p.id] || p.status || STATUS_PADRAO
+        })),
+    [state.createdPosts, state.deletedPosts, state.postStatus]
   );
+
+  // Só o aluno que cadastrou o relato mexe na situação dele.
+  function canChangeStatus(post) {
+    return !!post && !!currentUser && !!post.authorEmail && post.authorEmail === currentUser.email;
+  }
+
+  function setPostStatus(post, novoStatus) {
+    if (!canChangeStatus(post)) {
+      flash('Só quem publicou o relato pode alterar a situação');
+      return false;
+    }
+    if (!statusInfo(novoStatus) || statusInfo(novoStatus).id !== novoStatus) {
+      return false;
+    }
+    setState((s) => ({ ...s, postStatus: { ...s.postStatus, [post.id]: novoStatus } }));
+    flash(`Situação atualizada para "${statusInfo(novoStatus).curto}"`);
+    return true;
+  }
 
   function upsOf(post) {
     return post.ups + (state.ups[post.id] || 0);
@@ -117,7 +153,7 @@ export function AppProvider({ children }) {
     flash('Comentário excluído');
   }
 
-  function createPost({ texto, cat, campus, bloco, sala, anon, foto }) {
+  function createPost({ texto, cat, campus, bloco, sala, anon, fotos }) {
     if (openGate('publicar')) return null;
     const t = texto.trim();
     if (!t) return null;
@@ -132,8 +168,8 @@ export function AppProvider({ children }) {
       createdAt: Date.now(),
       quando: 'agora',
       ups: 0,
-      foto: !!foto,
-      fotoLabel: foto ? 'foto anexada por você' : '',
+      status: STATUS_PADRAO,
+      fotos: (fotos || []).slice(0, MAX_FOTOS),
       similares: 0,
       autor: anon ? 'Anônimo' : `${currentUser.nome} · ${courseAbbrev(currentUser.curso)}`,
       authorEmail: currentUser.email,
@@ -165,8 +201,8 @@ export function AppProvider({ children }) {
   }
 
   const myPosts = useMemo(
-    () => (currentUser ? state.createdPosts.filter((p) => p.authorEmail === currentUser.email && !state.deletedPosts.includes(p.id)) : []),
-    [state.createdPosts, state.deletedPosts, currentUser]
+    () => (currentUser ? allPosts.filter((p) => p.authorEmail === currentUser.email) : []),
+    [allPosts, currentUser]
   );
 
   const myComments = useMemo(() => {
@@ -199,6 +235,8 @@ export function AppProvider({ children }) {
     createPost,
     editPost,
     deletePost,
+    canChangeStatus,
+    setPostStatus,
     myPosts,
     myComments,
     gate,

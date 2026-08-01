@@ -1,25 +1,27 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../AppContext.jsx';
-import { CATS, CAMPI, BLOCOS, ASSIST_STEPS, ASSIST_STARTERS, suggestCategory } from '../data.js';
-import CategoryIllustration from '../components/CategoryIllustration.jsx';
+import { CATS, CAMPI, LOCAIS_POR_CAMPUS, locaisDoCampus, MAX_FOTOS, ASSIST_STEPS, ASSIST_TEMAS, suggestCategory } from '../data.js';
+import { fileToCompressedDataURL } from '../image.js';
 
 export default function CreatePost() {
-  const { createPost, isLogged, openGate } = useApp();
+  const { createPost, isLogged, openGate, flash } = useApp();
   const navigate = useNavigate();
 
   const [assist, setAssist] = useState(false);
   const [chat, setChat] = useState([]);
   const [assistStep, setAssistStep] = useState(-1);
-  const [answers, setAnswers] = useState([]);
+  const [answers, setAnswers] = useState({});
+  const [tema, setTema] = useState(null);
 
   const [texto, setTexto] = useState('');
   const [cat, setCat] = useState('');
-  const [campus, setCampus] = useState('Campina Grande');
-  const [bloco, setBloco] = useState(BLOCOS[0]);
+  const [campus, setCampus] = useState('');
+  const [bloco, setBloco] = useState('');
   const [sala, setSala] = useState('');
   const [anon, setAnon] = useState(false);
-  const [foto, setFoto] = useState(false);
+  const [fotos, setFotos] = useState([]);
+  const fileInput = useRef(null);
 
   if (!isLogged) {
     openGate('publicar');
@@ -33,47 +35,114 @@ export default function CreatePost() {
   function startAssist() {
     setAssist(true);
     setAssistStep(0);
-    setChat([{ role: 'bot', text: 'Me conta em uma frase o que está acontecendo — eu completo o resto com você.' }]);
-    setAnswers([]);
+    setTema(null);
+    setAnswers({});
+    setChat([{ role: 'bot', text: ASSIST_STEPS[0].q }]);
   }
 
-  function pickStarter(label) {
-    setChat((c) => c.concat({ role: 'me', text: label }, { role: 'bot', text: ASSIST_STEPS[0].q }));
-    setAssistStep(1);
-    setTexto(label);
+  // Troca de campus zera o local: as opções de um campus não valem no outro.
+  function trocarCampus(novoCampus) {
+    setCampus(novoCampus);
+    setBloco('');
+  }
+
+  // A etapa "detalhe" pergunta o que o tema escolhido define; as demais são fixas.
+  function perguntaDoPasso(indice, temaAtual) {
+    const step = ASSIST_STEPS[indice];
+    if (step.key === 'detalhe') return temaAtual ? temaAtual.q : 'O que exatamente está acontecendo?';
+    return step.q;
+  }
+
+  function opcoesDoPasso(indice, temaAtual) {
+    const step = ASSIST_STEPS[indice];
+    if (step.key === 'tema') return ASSIST_TEMAS.map((t) => t.label);
+    if (step.key === 'detalhe') return temaAtual ? temaAtual.opcoes : [];
+    if (step.key === 'campus') return CAMPI;
+    if (step.key === 'local') return locaisDoCampus(campus);
+    return step.chips;
+  }
+
+  function montarTexto(resp, temaAtual) {
+    const { detalhe, campus: campusResp, local, frequencia, impacto } = resp;
+    return (
+      `${detalhe} — ${temaAtual.label.toLowerCase()} — em ${local}, campus ${campusResp}.\n\n` +
+      `Acontece: ${frequencia.toLowerCase()}. Impacto: ${impacto.toLowerCase()}.\n\n` +
+      'Registro aqui para juntar com outros relatos parecidos e mostrar o tamanho real da situação.'
+    );
   }
 
   function pickAnswer(label) {
-    const nextStep = assistStep + 1;
-    const newAnswers = answers.concat(label);
-    if (nextStep <= 3) {
-      setChat((c) => c.concat({ role: 'me', text: label }, { role: 'bot', text: ASSIST_STEPS[nextStep - 1].q }));
-      setAssistStep(nextStep);
-      setAnswers(newAnswers);
+    const step = ASSIST_STEPS[assistStep];
+    const novasRespostas = { ...answers, [step.key]: label };
+    let temaAtual = tema;
+
+    if (step.key === 'tema') {
+      temaAtual = ASSIST_TEMAS.find((t) => t.label === label) || null;
+      setTema(temaAtual);
+      if (temaAtual) setCat(temaAtual.cat);
+    }
+    if (step.key === 'campus') trocarCampus(label);
+    if (step.key === 'local') setBloco(label);
+
+    setAnswers(novasRespostas);
+
+    const proximo = assistStep + 1;
+    if (proximo < ASSIST_STEPS.length) {
+      setChat((c) => c.concat({ role: 'me', text: label }, { role: 'bot', text: perguntaDoPasso(proximo, temaAtual) }));
+      setAssistStep(proximo);
       return;
     }
-    const base = chat.find((m) => m.role === 'me');
-    const texto2 =
-      (base ? base.text : 'Problema relatado') +
-      ' em ' + newAnswers[0] + '.\n\nAcontece: ' + newAnswers[1].toLowerCase() + '. Afeta: ' + newAnswers[2].toLowerCase() + '.\n\n' +
-      'O problema já foi comentado entre os alunos, mas segue sem solução. Registro aqui para juntar com outros relatos parecidos e mostrar o tamanho real da situação.';
-    setChat((c) => c.concat({ role: 'me', text: label }, { role: 'bot', text: 'Montei uma descrição com o que você me disse e joguei no campo abaixo. Ajuste o que quiser antes de publicar.' }));
-    setAssistStep(4);
-    setAnswers(newAnswers);
-    setTexto(texto2);
-    setBloco(newAnswers[0]);
+
+    setChat((c) =>
+      c.concat(
+        { role: 'me', text: label },
+        { role: 'bot', text: 'Montei uma descrição com o que você me disse e joguei no campo abaixo. Ajuste o que quiser antes de publicar.' }
+      )
+    );
+    setAssistStep(ASSIST_STEPS.length);
+    setTexto(montarTexto(novasRespostas, temaAtual));
   }
 
   const chatChips = (() => {
-    if (assistStep < 0 || assistStep > 3) return [];
-    if (assistStep === 0) return ASSIST_STARTERS.map((label) => ({ label, go: () => pickStarter(label) }));
-    const step = ASSIST_STEPS[assistStep - 1];
-    return step.chips.map((label) => ({ label, go: () => pickAnswer(label) }));
+    if (assistStep < 0 || assistStep >= ASSIST_STEPS.length) return [];
+    return opcoesDoPasso(assistStep, tema).map((label) => ({ label, go: () => pickAnswer(label) }));
   })();
 
+  async function addFotos(fileList) {
+    const arquivos = Array.from(fileList || []).filter((f) => f.type.startsWith('image/'));
+    if (arquivos.length === 0) return;
+    const espaco = MAX_FOTOS - fotos.length;
+    if (espaco <= 0) {
+      flash(`Máximo de ${MAX_FOTOS} fotos por relato`);
+      return;
+    }
+    if (arquivos.length > espaco) flash(`Só cabem mais ${espaco} foto(s) neste relato`);
+    try {
+      const novas = await Promise.all(arquivos.slice(0, espaco).map(fileToCompressedDataURL));
+      setFotos((atual) => atual.concat(novas.map((src) => ({ src, label: '' }))).slice(0, MAX_FOTOS));
+    } catch {
+      flash('Não foi possível carregar alguma das imagens');
+    }
+  }
+
+  function removerFoto(index) {
+    setFotos((atual) => atual.filter((_, i) => i !== index));
+  }
+
   function publicar() {
-    if (!texto.trim()) return;
-    const id = createPost({ texto, cat: cat || sug, campus, bloco, sala, anon, foto });
+    if (!texto.trim()) {
+      flash('Descreva o que aconteceu antes de publicar');
+      return;
+    }
+    if (!campus) {
+      flash('Selecione o campus do relato');
+      return;
+    }
+    if (!bloco) {
+      flash('Selecione o local dentro do campus');
+      return;
+    }
+    const id = createPost({ texto, cat: cat || sug, campus, bloco, sala, anon, fotos });
     if (id) navigate(`/relato/${id}`);
   }
 
@@ -89,14 +158,19 @@ export default function CreatePost() {
 
       {assist && (
         <div className="card">
+          <div className="mono" style={{ letterSpacing: 0 }}>
+            {assistStep < ASSIST_STEPS.length
+              ? `etapa ${assistStep + 1} de ${ASSIST_STEPS.length}`
+              : 'rascunho pronto — revise abaixo'}
+          </div>
           <div className="chat-box">
             {chat.map((m, i) => (
-              <div key={i} className={`chat-bubble ${m.role === 'bot' ? 'bot' : 'me'}`}>{m.text}</div>
+              <div key={`${m.role}-${i}`} className={`chat-bubble ${m.role === 'bot' ? 'bot' : 'me'}`}>{m.text}</div>
             ))}
           </div>
           <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
             {chatChips.map((cc) => (
-              <div key={cc.label} className="chat-chip" onClick={cc.go}>{cc.label}</div>
+              <button type="button" key={cc.label} className="chat-chip" onClick={cc.go}>{cc.label}</button>
             ))}
           </div>
         </div>
@@ -122,14 +196,36 @@ export default function CreatePost() {
         </div>
 
         <div className="field-group">
-          <div className="field-label">Foto (opcional)</div>
-          {foto ? (
-            <div className="photo-box on" style={{ padding: 0, position: 'relative' }} onClick={() => setFoto(false)}>
-              <CategoryIllustration cat={cat || sug} />
-              <div className="photo-caption">foto anexada — toque para remover</div>
+          <div className="field-label">Fotos (opcional) — até {MAX_FOTOS}</div>
+          <input
+            ref={fileInput}
+            type="file"
+            accept="image/*"
+            multiple
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              addFotos(e.target.files);
+              e.target.value = '';
+            }}
+          />
+          {fotos.length > 0 && (
+            <div className={`photo-grid n${fotos.length} editable`}>
+              {fotos.map((f, i) => (
+                <div key={f.src.slice(-32) + i} className="photo-cell">
+                  <img className="photo-cell-img" src={f.src} alt={`Foto ${i + 1} do relato`} />
+                  <button type="button" className="photo-remove" onClick={() => removerFoto(i)} aria-label={`Remover foto ${i + 1}`}>
+                    ✕
+                  </button>
+                </div>
+              ))}
             </div>
-          ) : (
-            <div className="photo-box" onClick={() => setFoto(true)}>toque para anexar uma foto</div>
+          )}
+          {fotos.length < MAX_FOTOS && (
+            <button type="button" className="photo-box" onClick={() => fileInput.current?.click()}>
+              {fotos.length === 0
+                ? 'toque para anexar fotos'
+                : `adicionar mais fotos · ${fotos.length}/${MAX_FOTOS}`}
+            </button>
           )}
         </div>
 
@@ -145,11 +241,23 @@ export default function CreatePost() {
         <div className="field-group">
           <div className="field-label">Onde</div>
           <div className="filters-row">
-            <select className="input" style={{ flex: 1, minWidth: 120, height: 38 }} value={campus} onChange={(e) => setCampus(e.target.value)}>
+            <select className="input" style={{ flex: 1, minWidth: 120, height: 38 }} value={campus} onChange={(e) => trocarCampus(e.target.value)}>
+              <option value="">Selecione o campus…</option>
               {CAMPI.map((o) => <option key={o} value={o}>{o}</option>)}
             </select>
-            <select className="input" style={{ flex: 1, minWidth: 120, height: 38 }} value={bloco} onChange={(e) => setBloco(e.target.value)}>
-              {BLOCOS.map((o) => <option key={o} value={o}>{o}</option>)}
+            <select
+              className="input"
+              style={{ flex: 1, minWidth: 120, height: 38 }}
+              value={bloco}
+              disabled={!campus}
+              onChange={(e) => setBloco(e.target.value)}
+            >
+              <option value="">{campus ? 'Selecione o local…' : 'Escolha o campus primeiro'}</option>
+              {(LOCAIS_POR_CAMPUS[campus] || []).map((g) => (
+                <optgroup key={g.grupo} label={g.grupo}>
+                  {g.locais.map((o) => <option key={o} value={o}>{o}</option>)}
+                </optgroup>
+              ))}
             </select>
             <input className="input" style={{ flex: 1, minWidth: 110, height: 38 }} placeholder="Sala / ponto" value={sala} onChange={(e) => setSala(e.target.value)} />
           </div>

@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../AppContext.jsx';
 import { initials } from '../time.js';
-import CategoryIllustration from '../components/CategoryIllustration.jsx';
+import PhotoGrid from '../components/PhotoGrid.jsx';
+import { StatusBadge, StatusPicker } from '../components/StatusBadge.jsx';
 
 export default function PostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { allPosts, upsOf, isUpped, toggleUp, commentsOf, postComment, isLogged, openGate, flash } = useApp();
+  const { allPosts, upsOf, isUpped, toggleUp, commentsOf, postComment, isLogged, openGate, flash, canChangeStatus, setPostStatus } = useApp();
   const [commentText, setCommentText] = useState('');
   const [reportDone, setReportDone] = useState(false);
 
@@ -47,6 +48,7 @@ export default function PostDetail() {
       <div className="card" style={{ padding: 18, gap: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <span className="badge-cat">{post.cat}</span>
+          <StatusBadge status={post.status} />
           <span className="mono" style={{ letterSpacing: 0 }}>{post.local}</span>
           <span style={{ flex: 1 }} />
           <span className="mono" style={{ color: 'var(--label-soft)', letterSpacing: 0 }}>{post.quando}</span>
@@ -56,13 +58,13 @@ export default function PostDetail() {
           <div className="mini-avatar">{inic}</div>
           <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>{post.autor}</div>
         </div>
-        {post.foto && (
-          <div className="post-photo detail" style={{ position: 'relative', padding: 0 }}>
-            <CategoryIllustration cat={post.cat} />
-            {post.fotoLabel && <div className="photo-caption">{post.fotoLabel}</div>}
+        <PhotoGrid fotos={post.fotos} cat={post.cat} detail />
+        <div style={{ fontSize: 15, lineHeight: 1.65, color: '#2E3742', whiteSpace: 'pre-line' }}>{post.texto}</div>
+        {canChangeStatus(post) && (
+          <div className="status-owner-box">
+            <StatusPicker status={post.status} onChange={(s) => setPostStatus(post, s)} />
           </div>
         )}
-        <div style={{ fontSize: 15, lineHeight: 1.65, color: '#2E3742', whiteSpace: 'pre-line' }}>{post.texto}</div>
         {post.similares > 0 && (
           <div className="similar-pill" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 4 }} onClick={() => navigate('/em-alta')}>
             <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--warn-ink)' }}>

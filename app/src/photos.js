@@ -43,6 +43,10 @@ export const CATEGORY_PHOTOS = {
   }
 };
 
+// Categorias sem foto própria reaproveitam a imagem mais próxima, em vez de
+// cair no fallback genérico sem querer.
+const ALIAS = { Estrutura: 'Salas de aula' };
+
 export function photoFor(cat) {
-  return CATEGORY_PHOTOS[cat] || CATEGORY_PHOTOS['Salas de aula'];
+  return CATEGORY_PHOTOS[cat] || CATEGORY_PHOTOS[ALIAS[cat]] || CATEGORY_PHOTOS['Salas de aula'];
 }

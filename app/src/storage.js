@@ -7,6 +7,7 @@ const DEFAULT_STATE = {
   ups: {},
   upset: {},
   extraComments: {},
+  postStatus: {},
   deletedPosts: [],
   deletedComments: []
 };

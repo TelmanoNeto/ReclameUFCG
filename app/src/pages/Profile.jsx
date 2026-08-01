@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../AppContext.jsx';
 import { initials } from '../time.js';
+import { StatusPicker } from '../components/StatusBadge.jsx';
 
 export default function Profile() {
-  const { isLogged, currentUser, logout, myPosts, myComments, upsOf, commentsOf, editPost, deletePost, deleteComment } = useApp();
+  const { isLogged, currentUser, logout, myPosts, myComments, upsOf, commentsOf, editPost, deletePost, deleteComment, setPostStatus } = useApp();
   const navigate = useNavigate();
   const [tab, setTab] = useState('relatos');
   const [editingId, setEditingId] = useState(null);
@@ -72,6 +73,7 @@ export default function Profile() {
                 ) : (
                   <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.32 }}>{p.titulo}</div>
                 )}
+                <StatusPicker status={p.status} onChange={(s) => setPostStatus(p, s)} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9 }} className="mono">
                   <span style={{ letterSpacing: 0 }}>▲ {upsOf(p)}</span>
                   <span style={{ letterSpacing: 0 }}>💬 {commentsOf(p.id).length}</span>

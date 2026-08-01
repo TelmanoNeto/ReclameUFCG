@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { TRENDING_META } from '../data.js';
 import { useApp } from '../AppContext.jsx';
+import { StatusBadge } from '../components/StatusBadge.jsx';
 
 export default function Trending() {
   const navigate = useNavigate();
@@ -8,7 +9,14 @@ export default function Trending() {
 
   const trending = TRENDING_META.map((t, i) => {
     const post = allPosts.find((p) => p.id === t.id);
-    return { ...t, rank: String(i + 1).padStart(2, '0'), ups: post ? upsOf(post) : 0, cat: post ? post.cat : '', campus: post ? post.campus : '' };
+    return {
+      ...t,
+      rank: String(i + 1).padStart(2, '0'),
+      ups: post ? upsOf(post) : 0,
+      cat: post ? post.cat : '',
+      campus: post ? post.campus : '',
+      status: post ? post.status : null
+    };
   });
 
   return (
@@ -27,6 +35,7 @@ export default function Trending() {
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <span className="badge-cat">{t.cat}</span>
+              {t.status && <StatusBadge status={t.status} />}
               <span className="mono" style={{ letterSpacing: 0 }}>{t.campus}</span>
             </div>
             <div style={{ fontSize: 16.5, fontWeight: 600, lineHeight: 1.3, letterSpacing: '-0.01em' }}>{t.titulo}</div>
