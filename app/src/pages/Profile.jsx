@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../AppContext.jsx';
 import { initials } from '../time.js';
-import { StatusPicker } from '../components/StatusBadge.jsx';
+import { StatusBadge, StatusPicker } from '../components/StatusBadge.jsx';
 
 export default function Profile() {
   const { isLogged, currentUser, logout, myPosts, myComments, upsOf, commentsOf, editPost, deletePost, deleteComment, setPostStatus } = useApp();
@@ -54,19 +54,7 @@ export default function Profile() {
                   <span className="badge-cat">{p.cat}</span>
                   <span className="mono" style={{ letterSpacing: 0 }}>{p.local}</span>
                   <span style={{ flex: 1 }} />
-                  <span
-                    className="mono"
-                    style={{
-                      letterSpacing: 0,
-                      color: p.autor === 'Anônimo' ? 'var(--ink-mute)' : 'var(--label)',
-                      background: p.autor === 'Anônimo' ? 'var(--bg)' : 'transparent',
-                      border: '1px solid var(--border)',
-                      borderRadius: 999,
-                      padding: '3px 8px'
-                    }}
-                  >
-                    {p.autor === 'Anônimo' ? 'anônimo' : 'público'}
-                  </span>
+                  <StatusBadge status={p.status} />
                 </div>
                 {editando ? (
                   <textarea className="input" value={editText} onChange={(e) => setEditText(e.target.value)} style={{ minHeight: 84 }} />

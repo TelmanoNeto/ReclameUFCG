@@ -10,6 +10,8 @@ export function timeAgo(timestamp) {
 }
 
 export function initials(name) {
+  // 'Anônimo' não é mais possível ao publicar, mas relatos salvos antes disso
+  // ainda podem ter esse autor no localStorage.
   if (!name || name === 'Anônimo') return 'AN';
   return name.split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 }

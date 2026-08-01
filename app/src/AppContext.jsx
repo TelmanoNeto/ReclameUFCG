@@ -153,7 +153,7 @@ export function AppProvider({ children }) {
     flash('Comentário excluído');
   }
 
-  function createPost({ texto, cat, campus, bloco, sala, anon, fotos }) {
+  function createPost({ texto, cat, campus, bloco, sala, fotos }) {
     if (openGate('publicar')) return null;
     const t = texto.trim();
     if (!t) return null;
@@ -171,7 +171,7 @@ export function AppProvider({ children }) {
       status: STATUS_PADRAO,
       fotos: (fotos || []).slice(0, MAX_FOTOS),
       similares: 0,
-      autor: anon ? 'Anônimo' : `${currentUser.nome} · ${courseAbbrev(currentUser.curso)}`,
+      autor: `${currentUser.nome} · ${courseAbbrev(currentUser.curso)}`,
       authorEmail: currentUser.email,
       titulo,
       resumo: t.slice(0, 150),

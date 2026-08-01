@@ -4,7 +4,7 @@ import { useApp } from '../AppContext.jsx';
 const COPY = {
   apoiar: ['Entre para apoiar', 'Apoios mostram quantas pessoas passam pelo mesmo problema. Para dar o seu, é preciso ter conta — ler e buscar continua livre.'],
   comentar: ['Entre para comentar', 'Comentários são a forma de a comunidade responder a um relato. Para escrever o seu, crie uma conta em um minuto.'],
-  publicar: ['Entre para publicar', 'Só quem tem conta publica relatos. Você pode escolher aparecer com seu nome ou como anônimo em cada publicação.']
+  publicar: ['Entre para publicar', 'Só quem tem conta publica relatos, e todo relato aparece com o nome e o curso de quem publicou. Ler e buscar continua livre.']
 };
 
 export default function GateModal() {

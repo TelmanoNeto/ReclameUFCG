@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#E9E3D7; font-family:'Archivo',system-ui,sans-serif; color:#1B2330; -webkit-font-smoothing:antialiased; }
+  * { box-sizing:border-box; }
+  a { color:#23456B; text-decoration:none; }
+  a:hover { color:#16304C; text-decoration:underline; }
+  input, textarea, button, select { font-family:inherit; }
+  input:focus, textarea:focus, select:focus { outline:2px solid #23456B; outline-offset:1px; }
+  .sc::-webkit-scrollbar { width:8px; }
+  .sc::-webkit-scrollbar-thumb { background:#DCD7CB; border-radius:8px; }
+  @keyframes sheetUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  @keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</helmet>
+
+<div style="min-height:100vh;padding:36px 40px 72px;display:flex;flex-direction:column;gap:26px;align-items:flex-start;width:max-content;min-width:100%">
+
+  <div style="width:100%;max-width:1680px;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8A8478">Protótipo navegável · alta fidelidade</div>
+      <div style="font-size:30px;font-weight:700;letter-spacing:-0.02em">ReclameUFCG</div>
+      <div style="font-size:14px;color:#6C7683;max-width:520px;text-wrap:pretty">Vitrine pública de relatos de infraestrutura. Navegação livre; login só para publicar, comentar e apoiar.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start">
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478;margin-right:2px">Estado</span>
+        <button onClick="{{ setVisitor }}" style="{{ stVisitorStyle }}">Visitante</button>
+        <button onClick="{{ setLogged }}" style="{{ stLoggedStyle }}">Logado</button>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478;margin-right:2px">Telas</span>
+        <sc-for list="{{ navButtons }}" as="nb" hint-placeholder-count="7">
+          <button onClick="{{ nb.go }}" style="{{ nb.style }}">{{ nb.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:36px;align-items:flex-start;flex-wrap:nowrap;justify-content:flex-start;width:max-content">
+    <sc-for list="{{ frames }}" as="frame" hint-placeholder-count="2">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478;padding-left:2px">{{ frame.label }}</div>
+        <div style="{{ frame.shellStyle }}">
+
+          <sc-if value="{{ frame.desktop }}" hint-placeholder-val="{{ false }}">
+            <div style="height:64px;flex:none;border-bottom:1px solid #E4E0D6;background:#FFFFFF;display:flex;align-items:center;gap:24px;padding:0 24px">
+              <div onClick="{{ goFeed }}" style="font-size:19px;font-weight:700;letter-spacing:-0.02em;cursor:pointer;white-space:nowrap">Reclame<span style="color:#23456B">UFCG</span></div>
+              <div style="flex:1;max-width:420px;display:flex;align-items:center;gap:8px;background:#F5F2EB;border:1px solid #E4E0D6;border-radius:999px;padding:0 14px;height:38px">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#A39C90">/</span>
+                <input value="{{ query }}" onChange="{{ onQuery }}" placeholder="Buscar relatos, blocos, categorias…" style="flex:1;border:0;background:transparent;font-size:13.5px;color:#1B2330;outline:none" />
+              </div>
+              <div style="flex:1"></div>
+              <sc-if value="{{ isVisitor }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;gap:8px;align-items:center">
+                  <button onClick="{{ goLogin }}" style="height:36px;padding:0 16px;border-radius:999px;border:1px solid #D5D0C4;background:#FFFFFF;color:#1B2330;font-size:13.5px;font-weight:500;cursor:pointer">Entrar</button>
+                  <button onClick="{{ goSignup }}" style="height:36px;padding:0 16px;border-radius:999px;border:1px solid #23456B;background:#23456B;color:#FFFFFF;font-size:13.5px;font-weight:600;cursor:pointer">Criar conta</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ isLogged }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;gap:12px;align-items:center">
+                  <button onClick="{{ goCreate }}" style="height:36px;padding:0 16px;border-radius:999px;border:1px solid #23456B;background:#23456B;color:#FFFFFF;font-size:13.5px;font-weight:600;cursor:pointer">Novo relato</button>
+                  <div onClick="{{ goProfile }}" style="display:flex;align-items:center;gap:9px;cursor:pointer">
+                    <div style="width:32px;height:32px;border-radius:999px;background:#23456B;color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:600">MV</div>
+                    <div style="font-size:13px;font-weight:500">{{ userFirst }}</div>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ frame.mobile }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:none;background:#FFFFFF;border-bottom:1px solid #E4E0D6;padding:12px 14px 10px;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div onClick="{{ goFeed }}" style="font-size:17px;font-weight:700;letter-spacing:-0.02em;cursor:pointer">Reclame<span style="color:#23456B">UFCG</span></div>
+                <sc-if value="{{ isVisitor }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ goLogin }}" style="height:30px;padding:0 13px;border-radius:999px;border:1px solid #D5D0C4;background:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Entrar</button>
+                </sc-if>
+                <sc-if value="{{ isLogged }}" hint-placeholder-val="{{ false }}">
+                  <div onClick="{{ goProfile }}" style="width:30px;height:30px;border-radius:999px;background:#23456B;color:#fff;display:grid;place-items:center;font-size:11.5px;font-weight:600;cursor:pointer">MV</div>
+                </sc-if>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;background:#F5F2EB;border:1px solid #E4E0D6;border-radius:999px;padding:0 12px;height:34px">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#A39C90">/</span>
+                <input value="{{ query }}" onChange="{{ onQuery }}" placeholder="Buscar relatos, blocos…" style="flex:1;border:0;background:transparent;font-size:13px;outline:none" />
+              </div>
+            </div>
+          </sc-if>
+
+          <div class="sc" style="flex:1;min-height:0;overflow-y:auto;display:flex;justify-content:center;gap:28px;padding:0">
+
+            <sc-if value="{{ frame.desktop }}" hint-placeholder-val="{{ false }}">
+              <div style="width:220px;flex:none;padding:22px 0 22px 24px;position:sticky;top:0;align-self:flex-start;display:flex;flex-direction:column;gap:2px">
+                <sc-for list="{{ sideNav }}" as="s" hint-placeholder-count="4">
+                  <div onClick="{{ s.go }}" style="{{ s.style }}">{{ s.label }}</div>
+                </sc-for>
+                <div style="margin-top:18px;padding:14px;border:1px dashed #D5D0C4;border-radius:12px;background:#FAF8F3">
+                  <div style="font-size:12.5px;line-height:1.5;color:#6C7683;text-wrap:pretty">Navegar é livre. Apoiar, comentar e publicar pedem conta.</div>
+                </div>
+              </div>
+            </sc-if>
+
+            <div style="{{ frame.colStyle }}">
+
+              <sc-if value="{{ isFeed }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:14px">
+                  <div style="display:flex;gap:8px;border-bottom:1px solid #E4E0D6;padding-bottom:2px">
+                    <div onClick="{{ tabRecentes }}" style="{{ tabRecentesStyle }}">Recentes</div>
+                    <div onClick="{{ tabAlta }}" style="{{ tabAltaStyle }}">Em alta</div>
+                  </div>
+
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478">Filtros</div>
+                    <div style="display:flex;gap:7px;flex-wrap:wrap">
+                      <sc-for list="{{ catChips }}" as="chip" hint-placeholder-count="6">
+                        <div onClick="{{ chip.go }}" style="{{ chip.style }}">{{ chip.label }}</div>
+                      </sc-for>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                      <select value="{{ campus }}" onChange="{{ onCampus }}" style="height:32px;border-radius:8px;border:1px solid #E4E0D6;background:#FFFFFF;font-size:12.5px;padding:0 8px;color:#3D4753">
+                        <sc-for list="{{ campusOpts }}" as="o" hint-placeholder-count="3">
+                          <option value="{{ o }}">{{ o }}</option>
+                        </sc-for>
+                      </select>
+                      <select value="{{ curso }}" onChange="{{ onCurso }}" style="height:32px;border-radius:8px;border:1px solid #E4E0D6;background:#FFFFFF;font-size:12.5px;padding:0 8px;color:#3D4753">
+                        <sc-for list="{{ cursoOpts }}" as="o" hint-placeholder-count="3">
+                          <option value="{{ o }}">{{ o }}</option>
+                        </sc-for>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A8478">{{ feedCount }}</div>
+
+                  <div style="display:flex;flex-direction:column;gap:12px">
+                    <sc-for list="{{ feed }}" as="c" hint-placeholder-count="4">
+                      <div onClick="{{ c.open }}" style="background:#FFFFFF;border:1px solid #E4E0D6;border-radius:14px;padding:15px;display:flex;flex-direction:column;gap:10px;cursor:pointer" style-hover="border-color:#C9C3B4">
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                          <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#23456B;background:#EDF1F7;border:1px solid #C6D5E6;border-radius:999px;padding:3px 8px">{{ c.cat }}</span>
+                          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A8478">{{ c.local }}</span>
+                          <span style="flex:1"></span>
+                          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#A39C90">{{ c.quando }}</span>
+                        </div>
+                        <div style="font-size:16px;font-weight:600;line-height:1.32;letter-spacing:-0.01em;text-wrap:pretty">{{ c.titulo }}</div>
+                        <div style="font-size:13.5px;line-height:1.55;color:#545E6A;text-wrap:pretty">{{ c.resumo }}</div>
+                        <sc-if value="{{ c.foto }}" hint-placeholder-val="{{ false }}">
+                          <div style="height:168px;border-radius:10px;border:1px solid #E4E0D6;background:repeating-linear-gradient(135deg,#EFEBE1 0 10px,#F7F4EE 10px 20px);display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9C958A">{{ c.fotoLabel }}</div>
+                        </sc-if>
+                        <sc-if value="{{ c.temSimilares }}" hint-placeholder-val="{{ false }}">
+                          <div style="display:inline-flex;align-self:flex-start;align-items:center;gap:7px;background:#FBF3E6;border:1px solid #EEDCBF;border-radius:8px;padding:6px 10px;font-size:12px;color:#8A5B12">{{ c.similaresLabel }}</div>
+                        </sc-if>
+                        <div style="display:flex;align-items:center;gap:10px;padding-top:2px">
+                          <button onClick="{{ c.up }}" style="{{ c.upStyle }}">▲ {{ c.ups }}</button>
+                          <button onClick="{{ c.open }}" style="height:32px;padding:0 12px;border-radius:8px;border:1px solid #E4E0D6;background:#FFFFFF;font-size:12.5px;color:#545E6A;cursor:pointer;display:flex;align-items:center;gap:6px">💬 {{ c.nComentarios }}</button>
+                          <span style="flex:1"></span>
+                          <span style="font-size:12.5px;color:#8A8478">{{ c.autor }}</span>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+
+                  <div style="padding:18px 0 4px;display:flex;justify-content:center;gap:8px;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#A39C90">
+                    <div style="width:14px;height:14px;border:2px solid #DCD7CB;border-top-color:#23456B;border-radius:999px;animation:spin 1s linear infinite"></div>
+                    carregando mais relatos…
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ isTrending }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:14px">
+                  <div style="display:flex;gap:8px;border-bottom:1px solid #E4E0D6;padding-bottom:2px">
+                    <div onClick="{{ tabRecentes }}" style="{{ tabRecentesStyle }}">Recentes</div>
+                    <div onClick="{{ tabAlta }}" style="{{ tabAltaStyle }}">Em alta</div>
+                  </div>
+                  <div style="font-size:13px;color:#6C7683;text-wrap:pretty">Tópicos com mais apoios e comentários nos últimos 7 dias. Relatos parecidos aparecem agrupados.</div>
+                  <sc-for list="{{ trending }}" as="t" hint-placeholder-count="4">
+                    <div onClick="{{ t.open }}" style="background:#FFFFFF;border:1px solid #E4E0D6;border-radius:14px;padding:15px;display:flex;gap:14px;cursor:pointer" style-hover="border-color:#C9C3B4">
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;color:#C9C3B4;line-height:1;padding-top:2px">{{ t.rank }}</div>
+                      <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                          <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#23456B;background:#EDF1F7;border:1px solid #C6D5E6;border-radius:999px;padding:3px 8px">{{ t.cat }}</span>
+                          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A8478">{{ t.campus }}</span>
+                        </div>
+                        <div style="font-size:16.5px;font-weight:600;line-height:1.3;letter-spacing:-0.01em">{{ t.titulo }}</div>
+                        <div style="font-size:13.5px;line-height:1.55;color:#545E6A;border-left:2px solid #C6D5E6;padding-left:10px;text-wrap:pretty">{{ t.motivo }}</div>
+                        <div style="display:flex;gap:14px;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8A8478">
+                          <span style="color:#8A5B12;background:#FBF3E6;border:1px solid #EEDCBF;border-radius:8px;padding:4px 8px">{{ t.relatos }}</span>
+                          <span>▲ {{ t.ups }}</span>
+                          <span>💬 {{ t.coments }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:16px">
+                  <div onClick="{{ goFeed }}" style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#6C7683;cursor:pointer">← voltar ao feed</div>
+                  <div style="background:#FFFFFF;border:1px solid #E4E0D6;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#23456B;background:#EDF1F7;border:1px solid #C6D5E6;border-radius:999px;padding:3px 8px">{{ detail.cat }}</span>
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A8478">{{ detail.local }}</span>
+                      <span style="flex:1"></span>
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#A39C90">{{ detail.quando }}</span>
+                    </div>
+                    <div style="font-size:23px;font-weight:700;line-height:1.22;letter-spacing:-0.02em;text-wrap:pretty">{{ detail.titulo }}</div>
+                    <div style="display:flex;align-items:center;gap:9px">
+                      <div style="width:28px;height:28px;border-radius:999px;background:#EDE9E0;border:1px solid #E0DBD0;display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A8478">{{ detail.iniciais }}</div>
+                      <div style="font-size:13px;color:#545E6A">{{ detail.autor }}</div>
+                    </div>
+                    <sc-if value="{{ detail.foto }}" hint-placeholder-val="{{ false }}">
+                      <div style="height:280px;border-radius:12px;border:1px solid #E4E0D6;background:repeating-linear-gradient(135deg,#EFEBE1 0 10px,#F7F4EE 10px 20px);display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#9C958A">{{ detail.fotoLabel }}</div>
+                    </sc-if>
+                    <div style="font-size:15px;line-height:1.65;color:#2E3742;white-space:pre-line;text-wrap:pretty">{{ detail.texto }}</div>
+                    <sc-if value="{{ detail.temSimilares }}" hint-placeholder-val="{{ false }}">
+                      <div onClick="{{ goTrending }}" style="background:#FBF3E6;border:1px solid #EEDCBF;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;cursor:pointer">
+                        <div style="font-size:13.5px;font-weight:600;color:#8A5B12">{{ detail.similaresLabel }}</div>
+                        <div style="font-size:12.5px;color:#9A6E2A">Ver os relatos agrupados neste tópico →</div>
+                      </div>
+                    </sc-if>
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid #EDEAE2;padding-top:14px">
+                      <button onClick="{{ detail.up }}" style="{{ detail.upStyle }}">▲ Apoiar · {{ detail.ups }}</button>
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8A8478">{{ detail.nComentariosLabel }}</div>
+                      <span style="flex:1"></span>
+                      <sc-if value="{{ isLogged }}" hint-placeholder-val="{{ false }}">
+                        <button onClick="{{ denunciar }}" style="height:32px;padding:0 12px;border-radius:8px;border:1px solid #E4E0D6;background:#FFFFFF;font-size:12.5px;color:#8A8478;cursor:pointer">⚑ Denunciar</button>
+                      </sc-if>
+                    </div>
+                    <sc-if value="{{ reportDone }}" hint-placeholder-val="{{ false }}">
+                      <div style="font-size:12.5px;color:#6C7683;background:#F5F2EB;border-radius:8px;padding:9px 11px">Denúncia enviada para revisão da comunidade.</div>
+                    </sc-if>
+                  </div>
+
+                  <div style="display:flex;flex-direction:column;gap:12px">
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478">Comentários</div>
+                    <sc-if value="{{ isLogged }}" hint-placeholder-val="{{ false }}">
+                      <div style="background:#FFFFFF;border:1px solid #E4E0D6;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px">
+                        <textarea value="{{ commentText }}" onChange="{{ onComment }}" placeholder="Escreva um comentário…" style="border:0;resize:none;min-height:58px;font-size:13.5px;line-height:1.5;outline:none;color:#1B2330"></textarea>
+                        <div style="display:flex;justify-content:flex-end">
+                          <button onClick="{{ postComment }}" style="height:34px;padding:0 16px;border-radius:8px;border:1px solid #23456B;background:#23456B;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Comentar</button>
+                        </div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ isVisitor }}" hint-placeholder-val="{{ true }}">
+                      <div onClick="{{ gateComentar }}" style="background:#FFFFFF;border:1px dashed #D5D0C4;border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer">
+                        <div style="font-size:13.5px;color:#6C7683;text-wrap:pretty">Entre para comentar. Ler é livre.</div>
+                        <div style="height:32px;padding:0 14px;border-radius:999px;background:#1B2330;color:#fff;font-size:12.5px;font-weight:600;display:grid;place-items:center;white-space:nowrap">Entrar</div>
+                      </div>
+                    </sc-if>
+                    <sc-for list="{{ detailComments }}" as="k" hint-placeholder-count="3">
+                      <div style="display:flex;gap:11px;padding:2px 0">
+                        <div style="width:30px;height:30px;flex:none;border-radius:999px;background:#EDE9E0;border:1px solid #E0DBD0;display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A8478">{{ k.iniciais }}</div>
+                        <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+                          <div style="display:flex;gap:8px;align-items:baseline">
+                            <span style="font-size:13px;font-weight:600">{{ k.autor }}</span>
+                            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#A39C90">{{ k.quando }}</span>
+                          </div>
+                          <div style="font-size:13.5px;line-height:1.55;color:#3D4753;text-wrap:pretty">{{ k.texto }}</div>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ isCreate }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:16px">
+                  <div onClick="{{ goFeed }}" style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#6C7683;cursor:pointer">← cancelar</div>
+                  <div style="font-size:23px;font-weight:700;letter-spacing:-0.02em">Novo relato</div>
+
+                  <div style="display:flex;gap:8px">
+                    <div onClick="{{ modoLivre }}" style="{{ modoLivreStyle }}">Escrever</div>
+                    <div onClick="{{ modoAssistido }}" style="{{ modoAssistidoStyle }}">Modo assistido</div>
+                  </div>
+
+                  <sc-if value="{{ assistOn }}" hint-placeholder-val="{{ false }}">
+                    <div style="background:#FFFFFF;border:1px solid #E4E0D6;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px">
+                      <sc-for list="{{ chat }}" as="m" hint-placeholder-count="3">
+                        <div style="{{ m.style }}">{{ m.text }}</div>
+                      </sc-for>
+                      <div style="display:flex;gap:7px;flex-wrap:wrap">
+                        <sc-for list="{{ chatChips }}" as="cc" hint-placeholder-count="3">
+                          <div onClick="{{ cc.go }}" style="border:1px solid #C6D5E6;background:#EDF1F7;color:#23456B;border-radius:999px;padding:7px 12px;font-size:12.5px;cursor:pointer">{{ cc.label }}</div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+
+                  <div style="background:#FFFFFF;border:1px solid #E4E0D6;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:16px">
+                    <div style="display:flex;flex-direction:column;gap:7px">
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478">O que aconteceu</div>
+                      <textarea value="{{ formTexto }}" onChange="{{ onFormTexto }}" placeholder="Descreva o problema: o que é, onde fica, desde quando…" style="border:1px solid #E4E0D6;border-radius:10px;padding:11px;resize:vertical;min-height:120px;font-size:14px;line-height:1.55;outline:none;color:#1B2330"></textarea>
+                      <sc-if value="{{ temSugestao }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;align-items:center;gap:9px;font-size:12.5px;color:#545E6A">
+                          <span>Categoria sugerida:</span>
+                          <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#23456B;background:#EDF1F7;border:1px solid #C6D5E6;border-radius:999px;padding:3px 8px">{{ sugestao }}</span>
+                          <span onClick="{{ aceitarSugestao }}" style="color:#23456B;font-weight:600;cursor:pointer">usar</span>
+                        </div>
+                      </sc-if>
+                    </div>
+
+                    <div style="display:flex;flex-direction:column;gap:7px">
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478">Foto (opcional)</div>
+                      <div onClick="{{ toggleFoto }}" style="{{ fotoBoxStyle }}">{{ fotoBoxLabel }}</div>
+                    </div>
+
+                    <div style="display:flex;flex-direction:column;gap:7px">
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478">Categoria</div>
+                      <div style="display:flex;gap:7px;flex-wrap:wrap">
+                        <sc-for list="{{ formCats }}" as="fc" hint-placeholder-count="6">
+                          <div onClick="{{ fc.go }}" style="{{ fc.style }}">{{ fc.label }}</div>
+                        </sc-for>
+                      </div>
+                    </div>
+
+                    <div style="display:flex;flex-direction:column;gap:7px">
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478">Onde</div>
+                      <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <select value="{{ formCampus }}" onChange="{{ onFormCampus }}" style="flex:1;min-width:120px;height:38px;border-radius:9px;border:1px solid #E4E0D6;background:#fff;font-size:13px;padding:0 9px">
+                          <sc-for list="{{ campusList }}" as="o" hint-placeholder-count="3">
+                            <option value="{{ o }}">{{ o }}</option>
+                          </sc-for>
+                        </select>
+                        <select value="{{ formBloco }}" onChange="{{ onFormBloco }}" style="flex:1;min-width:120px;height:38px;border-radius:9px;border:1px solid #E4E0D6;background:#fff;font-size:13px;padding:0 9px">
+                          <sc-for list="{{ blocoList }}" as="o" hint-placeholder-count="3">
+                            <option value="{{ o }}">{{ o }}</option>
+                          </sc-for>
+                        </select>
+                        <input value="{{ formSala }}" onChange="{{ onFormSala }}" placeholder="Sala / ponto" style="flex:1;min-width:110px;height:38px;border-radius:9px;border:1px solid #E4E0D6;background:#fff;font-size:13px;padding:0 11px" />
+                      </div>
+                    </div>
+
+                    <div onClick="{{ toggleAnon }}" style="display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid #EDEAE2;padding-top:14px;cursor:pointer">
+                      <div style="display:flex;flex-direction:column;gap:3px">
+                        <div style="font-size:14px;font-weight:600">Publicar como anônimo</div>
+                        <div style="font-size:12.5px;color:#8A8478">{{ anonHint }}</div>
+                      </div>
+                      <div style="{{ anonTrackStyle }}"><div style="{{ anonKnobStyle }}"></div></div>
+                    </div>
+
+                    <button onClick="{{ publicar }}" style="height:46px;border-radius:10px;border:1px solid #23456B;background:#23456B;color:#fff;font-size:15px;font-weight:600;cursor:pointer">Publicar relato</button>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:16px;max-width:420px;width:100%;margin:0 auto">
+                  <div onClick="{{ goFeed }}" style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#6C7683;cursor:pointer">← continuar navegando sem conta</div>
+                  <div style="font-size:23px;font-weight:700;letter-spacing:-0.02em">Entrar</div>
+                  <div style="font-size:13.5px;color:#6C7683;line-height:1.55;text-wrap:pretty">A conta serve só para publicar, comentar e apoiar. Ler o feed, buscar e filtrar não exige login.</div>
+                  <div style="background:#FFFFFF;border:1px solid #E4E0D6;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px">
+                    <div style="display:flex;flex-direction:column;gap:6px">
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478">E-mail</div>
+                      <input value="{{ loginEmail }}" onChange="{{ onLoginEmail }}" placeholder="qualquer e-mail serve" style="height:42px;border-radius:9px;border:1px solid #E4E0D6;background:#fff;font-size:14px;padding:0 12px" />
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:6px">
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478">Senha</div>
+                      <input value="{{ loginSenha }}" onChange="{{ onLoginSenha }}" type="password" placeholder="••••••••" style="height:42px;border-radius:9px;border:1px solid #E4E0D6;background:#fff;font-size:14px;padding:0 12px" />
+                    </div>
+                    <button onClick="{{ doLogin }}" style="height:46px;border-radius:10px;border:1px solid #23456B;background:#23456B;color:#fff;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px">Entrar</button>
+                    <div style="font-size:13px;color:#6C7683;text-align:center">Não tem conta? <span onClick="{{ goSignup }}" style="color:#23456B;font-weight:600;cursor:pointer">Cadastre-se</span></div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:16px;max-width:480px;width:100%;margin:0 auto">
+                  <div onClick="{{ goFeed }}" style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#6C7683;cursor:pointer">← continuar navegando sem conta</div>
+                  <div style="font-size:23px;font-weight:700;letter-spacing:-0.02em">Criar conta</div>
+                  <div style="font-size:13.5px;color:#6C7683;line-height:1.55;text-wrap:pretty">Qualquer e-mail é aceito — não precisa ser institucional. Você só precisa de conta para publicar, comentar e apoiar.</div>
+                  <div style="background:#FFFFFF;border:1px solid #E4E0D6;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px">
+                    <sc-for list="{{ signupFields }}" as="f" hint-placeholder-count="7">
+                      <div style="display:flex;flex-direction:column;gap:6px">
+                        <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478">{{ f.label }}</div>
+                        <input value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.placeholder }}" style="height:42px;border-radius:9px;border:1px solid #E4E0D6;background:#fff;font-size:14px;padding:0 12px" />
+                      </div>
+                    </sc-for>
+                    <div style="display:flex;gap:8px">
+                      <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+                        <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478">Campus</div>
+                        <select value="{{ signupCampus }}" onChange="{{ onSignupCampus }}" style="height:42px;border-radius:9px;border:1px solid #E4E0D6;background:#fff;font-size:14px;padding:0 9px">
+                          <sc-for list="{{ campusList }}" as="o" hint-placeholder-count="3">
+                            <option value="{{ o }}">{{ o }}</option>
+                          </sc-for>
+                        </select>
+                      </div>
+                      <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+                        <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478">Período</div>
+                        <select value="{{ signupPeriodo }}" onChange="{{ onSignupPeriodo }}" style="height:42px;border-radius:9px;border:1px solid #E4E0D6;background:#fff;font-size:14px;padding:0 9px">
+                          <sc-for list="{{ periodoList }}" as="o" hint-placeholder-count="3">
+                            <option value="{{ o }}">{{ o }}</option>
+                          </sc-for>
+                        </select>
+                      </div>
+                    </div>
+                    <button onClick="{{ doSignup }}" style="height:46px;border-radius:10px;border:1px solid #23456B;background:#23456B;color:#fff;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px">Criar conta</button>
+                    <div style="font-size:13px;color:#6C7683;text-align:center">Já tem conta? <span onClick="{{ goLogin }}" style="color:#23456B;font-weight:600;cursor:pointer">Entrar</span></div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:16px">
+                  <div style="display:flex;align-items:center;gap:13px">
+                    <div style="width:52px;height:52px;border-radius:999px;background:#23456B;color:#fff;display:grid;place-items:center;font-size:18px;font-weight:600">MV</div>
+                    <div style="display:flex;flex-direction:column;gap:3px">
+                      <div style="font-size:19px;font-weight:700;letter-spacing:-0.01em">{{ userName }}</div>
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8A8478">{{ userMeta }}</div>
+                    </div>
+                    <span style="flex:1"></span>
+                    <button onClick="{{ logout }}" style="height:32px;padding:0 12px;border-radius:8px;border:1px solid #E4E0D6;background:#fff;font-size:12.5px;color:#6C7683;cursor:pointer">Sair</button>
+                  </div>
+
+                  <div style="display:flex;gap:8px;border-bottom:1px solid #E4E0D6;padding-bottom:2px">
+                    <div onClick="{{ profRelatos }}" style="{{ profRelatosStyle }}">Meus relatos</div>
+                    <div onClick="{{ profComentarios }}" style="{{ profComentariosStyle }}">Meus comentários</div>
+                  </div>
+
+                  <sc-if value="{{ profIsRelatos }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;flex-direction:column;gap:12px">
+                      <sc-for list="{{ myPosts }}" as="p" hint-placeholder-count="2">
+                        <div style="background:#FFFFFF;border:1px solid #E4E0D6;border-radius:14px;padding:15px;display:flex;flex-direction:column;gap:10px">
+                          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#23456B;background:#EDF1F7;border:1px solid #C6D5E6;border-radius:999px;padding:3px 8px">{{ p.cat }}</span>
+                            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A8478">{{ p.local }}</span>
+                            <span style="flex:1"></span>
+                            <span style="{{ p.visStyle }}">{{ p.visibilidade }}</span>
+                          </div>
+                          <sc-if value="{{ p.editando }}" hint-placeholder-val="{{ false }}">
+                            <textarea value="{{ editText }}" onChange="{{ onEditText }}" style="border:1px solid #E4E0D6;border-radius:10px;padding:11px;resize:vertical;min-height:84px;font-size:14px;line-height:1.55;outline:none"></textarea>
+                          </sc-if>
+                          <sc-if value="{{ p.lendo }}" hint-placeholder-val="{{ true }}">
+                            <div style="font-size:15px;font-weight:600;line-height:1.32">{{ p.titulo }}</div>
+                          </sc-if>
+                          <div style="display:flex;align-items:center;gap:9px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8A8478">
+                            <span>▲ {{ p.ups }}</span>
+                            <span>💬 {{ p.coments }}</span>
+                            <span style="flex:1"></span>
+                            <sc-if value="{{ p.editando }}" hint-placeholder-val="{{ false }}">
+                              <button onClick="{{ saveEdit }}" style="height:30px;padding:0 12px;border-radius:8px;border:1px solid #23456B;background:#23456B;color:#fff;font-size:12px;font-weight:600;cursor:pointer">Salvar</button>
+                            </sc-if>
+                            <sc-if value="{{ p.lendo }}" hint-placeholder-val="{{ true }}">
+                              <button onClick="{{ p.edit }}" style="height:30px;padding:0 11px;border-radius:8px;border:1px solid #E4E0D6;background:#fff;font-size:12px;color:#3D4753;cursor:pointer">Editar</button>
+                            </sc-if>
+                            <button onClick="{{ p.del }}" style="height:30px;padding:0 11px;border-radius:8px;border:1px solid #E9DAD6;background:#FCF4F2;color:#9C4A32;font-size:12px;cursor:pointer">Excluir</button>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ profIsComentarios }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;gap:12px">
+                      <sc-for list="{{ myComments }}" as="mc" hint-placeholder-count="2">
+                        <div style="background:#FFFFFF;border:1px solid #E4E0D6;border-radius:14px;padding:15px;display:flex;flex-direction:column;gap:9px">
+                          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A8478">em “{{ mc.em }}”</div>
+                          <div style="font-size:13.5px;line-height:1.55;color:#3D4753;text-wrap:pretty">{{ mc.texto }}</div>
+                          <div style="display:flex;align-items:center;gap:9px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#A39C90">
+                            <span>{{ mc.quando }}</span>
+                            <span style="flex:1"></span>
+                            <button onClick="{{ mc.del }}" style="height:30px;padding:0 11px;border-radius:8px;border:1px solid #E9DAD6;background:#FCF4F2;color:#9C4A32;font-size:12px;cursor:pointer">Excluir</button>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+
+              <div style="height:28px;flex:none"></div>
+            </div>
+
+            <sc-if value="{{ frame.desktop }}" hint-placeholder-val="{{ false }}">
+              <div style="width:300px;flex:none;padding:22px 24px 22px 0;display:flex;flex-direction:column;gap:12px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8A8478">Em alta esta semana</div>
+                <sc-for list="{{ trending }}" as="t" hint-placeholder-count="4">
+                  <div onClick="{{ t.open }}" style="background:#FFFFFF;border:1px solid #E4E0D6;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;cursor:pointer" style-hover="border-color:#C9C3B4">
+                    <div style="font-size:13.5px;font-weight:600;line-height:1.35;text-wrap:pretty">{{ t.titulo }}</div>
+                    <div style="font-size:12px;line-height:1.5;color:#6C7683;text-wrap:pretty">{{ t.motivo }}</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A5B12">{{ t.relatos }}</div>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ isVisitor }}" hint-placeholder-val="{{ true }}">
+                  <div style="margin-top:8px;background:#1B2330;color:#E9E3D7;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px">
+                    <div style="font-size:14px;font-weight:600;line-height:1.4">Viu um problema no seu bloco?</div>
+                    <div style="font-size:12.5px;line-height:1.5;color:#B7BEC7">Criar conta leva um minuto e serve para publicar, apoiar e comentar.</div>
+                    <button onClick="{{ goSignup }}" style="height:36px;border-radius:8px;border:0;background:#E9E3D7;color:#1B2330;font-size:13px;font-weight:600;cursor:pointer">Criar conta</button>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+
+          <sc-if value="{{ frame.mobile }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:none;height:62px;border-top:1px solid #E4E0D6;background:#FFFFFF;display:flex;align-items:center;justify-content:space-around;padding:0 10px 6px">
+              <sc-for list="{{ bottomNav }}" as="b" hint-placeholder-count="4">
+                <div onClick="{{ b.go }}" style="{{ b.style }}"><span style="font-size:16px;line-height:1">{{ b.icon }}</span><span style="font-size:10.5px">{{ b.label }}</span></div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ gateOpen }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ closeGate }}" style="position:absolute;inset:0;background:rgba(27,35,48,0.42);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .16s ease-out">
+              <div onClick="{{ stop }}" style="width:100%;max-width:440px;background:#FFFFFF;border-radius:18px 18px 0 0;padding:20px 18px 22px;display:flex;flex-direction:column;gap:12px;animation:sheetUp .22s cubic-bezier(.2,.8,.2,1)">
+                <div style="width:38px;height:4px;border-radius:99px;background:#E4E0D6;align-self:center"></div>
+                <div style="font-size:18px;font-weight:700;letter-spacing:-0.01em;margin-top:4px">{{ gateTitle }}</div>
+                <div style="font-size:13.5px;line-height:1.55;color:#6C7683;text-wrap:pretty">{{ gateBody }}</div>
+                <button onClick="{{ goLogin }}" style="height:46px;border-radius:10px;border:1px solid #23456B;background:#23456B;color:#fff;font-size:15px;font-weight:600;cursor:pointer">Entrar</button>
+                <button onClick="{{ goSignup }}" style="height:46px;border-radius:10px;border:1px solid #D5D0C4;background:#fff;color:#1B2330;font-size:15px;font-weight:600;cursor:pointer">Criar conta</button>
+                <button onClick="{{ closeGate }}" style="height:38px;border:0;background:transparent;color:#8A8478;font-size:13px;cursor:pointer">Continuar sem conta</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ toastOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;left:0;right:0;bottom:78px;display:flex;justify-content:center;pointer-events:none">
+              <div style="background:#1B2330;color:#E9E3D7;font-size:12.5px;padding:9px 14px;border-radius:999px;animation:fadeIn .2s ease-out">{{ toast }}</div>
+            </div>
+          </sc-if>
+
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;estadoInicial&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Visitante&quot;,&quot;Logado&quot;],&quot;default&quot;:&quot;Visitante&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Protótipo&quot;},&quot;telaInicial&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Feed&quot;,&quot;Em alta&quot;,&quot;Detalhe&quot;,&quot;Novo relato&quot;,&quot;Login&quot;,&quot;Cadastro&quot;,&quot;Perfil&quot;],&quot;default&quot;:&quot;Feed&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Protótipo&quot;},&quot;frameMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Mobile + Desktop&quot;,&quot;Só mobile&quot;,&quot;Só desktop&quot;],&quot;default&quot;:&quot;Mobile + Desktop&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Protótipo&quot;}}">
+const CATS = ['Banheiros','Climatização','Alimentação','Salas de aula','Acessibilidade','Internet','Iluminação','Laboratórios'];
+const CAMPI = ['Campina Grande','Cuité','Sumé','Patos','Pombal','Cajazeiras'];
+const BLOCOS = ['CCT · Bloco CN','CCT · Bloco CG','CH · Bloco BC','CTRN · Bloco CJ','RU','Setor de Aulas','Biblioteca Central'];
+const CURSOS = ['Ciência da Computação','Engenharia Elétrica','Engenharia Civil','Medicina','Direito','Letras','Engenharia de Materiais'];
+const PERIODOS = ['2026.2','2026.1','2025.2','2025.1'];
+
+const DATA = [
+  { id:'cn302', cat:'Climatização', campus:'Campina Grande', curso:'Engenharia Elétrica',
+    local:'CCT · Bloco CN · Sala 302', quando:'há 2 h', ups:214, foto:true,
+    fotoLabel:'foto — termômetro na CN 302', similares:4,
+    autor:'Rafael Beltrão · Eng. Elétrica',
+    titulo:'Ar-condicionado da CN 302 parado há três semanas',
+    resumo:'Sala com 60 alunos sem climatização desde o fim de junho; dois chamados abertos, nenhum retorno.',
+    texto:'O ar da 302 parou na última semana de junho e até hoje ninguém apareceu.\n\nÀs 14h a sala tem 60 pessoas em aula de Circuitos, janela que não abre e projetor ligado. Medi 34°C com o termômetro do laboratório. Metade da turma sai antes do intervalo, e quem fica não consegue prestar atenção em nada.\n\nJá abrimos chamado duas vezes pelo formulário do centro. Nenhuma resposta.',
+    comentarios:[
+      {autor:'Juliana Prado', iniciais:'JP', quando:'há 1 h', texto:'Mesma coisa na 304. A gente trocou de sala por conta própria semana passada.'},
+      {autor:'Anônimo', iniciais:'AN', quando:'há 48 min', texto:'Levei ventilador de casa. Isso não deveria ser normal.'},
+      {autor:'Caio Ferreira · Eng. Materiais', iniciais:'CF', quando:'há 20 min', texto:'Se todo mundo do CN relatar, dá pra mostrar que é o bloco inteiro e não uma sala.'}
+    ]},
+  { id:'ru-fila', cat:'Alimentação', campus:'Campina Grande', curso:'Ciência da Computação',
+    local:'RU · Campus Campina Grande', quando:'há 5 h', ups:341, foto:true,
+    fotoLabel:'foto — fila do RU às 11h50', similares:6,
+    autor:'Anônimo',
+    titulo:'Fila do RU passa de 40 minutos no almoço',
+    resumo:'Fila dobra o corredor entre 11h30 e 12h30; quem tem aula às 13h come em pé ou desiste.',
+    texto:'Cheguei 11h40 e saí com a bandeja 12h27. A fila dobra o corredor inteiro e não tem cobertura, então em dia de sol é castigo.\n\nQuem tem aula às 13h no CCT simplesmente não consegue almoçar. Duas catracas para o campus inteiro não fecha a conta.',
+    comentarios:[
+      {autor:'Marina Vasconcelos · CC', iniciais:'MV', quando:'há 3 h', texto:'Segunda e quinta é pior. Parece que o cardápio desses dias puxa mais gente.'},
+      {autor:'Anônimo', iniciais:'AN', quando:'há 2 h', texto:'Abrir a segunda entrada resolveria metade do problema.'}
+    ]},
+  { id:'papel-cg', cat:'Banheiros', campus:'Campina Grande', curso:'Engenharia Civil',
+    local:'CCT · Bloco CG · Térreo', quando:'há 7 h', ups:186, foto:false,
+    fotoLabel:'', similares:12,
+    autor:'Anônimo',
+    titulo:'Banheiro masculino do CG está sem papel desde segunda',
+    resumo:'Sem papel higiênico e sem sabão a semana inteira; é o único banheiro do térreo do bloco.',
+    texto:'Segunda de manhã já não tinha. Hoje é quinta e continua igual: sem papel, sem sabão, e a torneira do meio pinga sem parar.\n\nÉ o único banheiro do térreo do CG, usado por todo mundo que tem aula no bloco.',
+    comentarios:[
+      {autor:'Pedro Aquino · Eng. Civil', iniciais:'PA', quando:'há 5 h', texto:'No CN é a mesma história. Já virei rotina levar papel na mochila.'}
+    ]},
+  { id:'rampa-bc', cat:'Acessibilidade', campus:'Campina Grande', curso:'Direito',
+    local:'CH · Bloco BC · Entrada lateral', quando:'há 1 d', ups:97, foto:true,
+    fotoLabel:'foto — degrau no fim da rampa', similares:3,
+    autor:'Anônimo',
+    titulo:'A rampa do BC termina em um degrau de 12 cm',
+    resumo:'A única rampa da entrada lateral desemboca num degrau — cadeirante não completa o percurso sozinho.',
+    texto:'A rampa foi feita, está lá, com corrimão e tudo. Só que no fim dela tem um degrau de uns 12 cm até o piso do corredor.\n\nNa prática, quem usa cadeira de rodas precisa de ajuda justamente no último metro. Uma colega da turma depende de alguém empurrar todo dia.',
+    comentarios:[
+      {autor:'Lívia Nunes · Letras', iniciais:'LN', quando:'há 22 h', texto:'Já vi gente quase capotar ali. É perigoso, não só incômodo.'},
+      {autor:'Anônimo', iniciais:'AN', quando:'há 18 h', texto:'Uma rampinha de concreto de meio metro resolveria.'}
+    ]},
+  { id:'wifi-cj', cat:'Internet', campus:'Campina Grande', curso:'Engenharia de Materiais',
+    local:'CTRN · Bloco CJ', quando:'há 1 d', ups:128, foto:false,
+    fotoLabel:'', similares:0,
+    autor:'Thiago Melo · Eng. de Materiais',
+    titulo:'Wi-Fi do CJ cai todo dia depois das 15h',
+    resumo:'Queda diária no turno da tarde; laboratório com aula prática dependente de acesso remoto fica parado.',
+    texto:'Todo dia por volta das 15h a rede do CJ some por 20 a 40 minutos. Acontece de segunda a sexta.\n\nA aula prática de simulação depende de acessar o servidor do laboratório. Quando cai, a aula acaba ali.',
+    comentarios:[
+      {autor:'Anônimo', iniciais:'AN', quando:'há 20 h', texto:'Uso dados do celular pra conseguir entregar as coisas. Sai caro.'}
+    ]},
+  { id:'luz-estac', cat:'Iluminação', campus:'Campina Grande', curso:'Medicina',
+    local:'CCT · Estacionamento norte', quando:'há 2 d', ups:154, foto:true,
+    fotoLabel:'foto — estacionamento às 19h', similares:0,
+    autor:'Anônimo',
+    titulo:'Estacionamento norte do CCT está no escuro desde o recesso',
+    resumo:'Seis postes apagados na saída das aulas da noite; alunas relatam evitar o trajeto sozinhas.',
+    texto:'Contei seis postes apagados. Quem sai da aula às 22h atravessa o estacionamento inteiro no escuro até o portão.\n\nVárias meninas da turma passaram a esperar em grupo pra sair. Não deveria ser assim.',
+    comentarios:[
+      {autor:'Bianca Rocha · Medicina', iniciais:'BR', quando:'há 1 d', texto:'Peço carona até o portão todo dia. É constrangedor ter que fazer isso.'}
+    ]},
+  { id:'bebedouro', cat:'Salas de aula', campus:'Campina Grande', curso:'Ciência da Computação',
+    local:'Setor de Aulas · Corredor B', quando:'há 3 d', ups:63, foto:false,
+    fotoLabel:'', similares:0,
+    autor:'Marina Vasconcelos · CC',
+    titulo:'Bebedouro do corredor B só solta água quente',
+    resumo:'Único bebedouro do corredor sem refrigeração há um mês.',
+    texto:'O bebedouro do corredor B está sem refrigerar há mais de um mês. Sai água quente, no calor de Campina.\n\nÉ o único do corredor. O de baixo está interditado desde o semestre passado.',
+    comentarios:[]},
+  { id:'capela-quimica', cat:'Laboratórios', campus:'Cuité', curso:'Medicina',
+    local:'CES · Laboratório de Química II', quando:'há 4 d', ups:74, foto:true,
+    fotoLabel:'foto — capela de exaustão desligada', similares:0,
+    autor:'Anônimo',
+    titulo:'Capela de exaustão do Química II não liga',
+    resumo:'Prática com solventes acontece sem exaustão funcionando; turma faz o experimento com as janelas abertas.',
+    texto:'A capela não liga desde o começo do período. A prática de solventes foi feita com as janelas abertas e um ventilador de pé.\n\nAlém do risco, metade da turma saiu com dor de cabeça.',
+    comentarios:[
+      {autor:'Anônimo', iniciais:'AN', quando:'há 3 d', texto:'Isso é questão de segurança, não de conforto.'}
+    ]}
+];
+
+const TRENDING = [
+  { id:'papel-cg', cat:'Banheiros', campus:'Campina Grande', titulo:'Falta de papel e sabão nos banheiros do CCT',
+    motivo:'12 relatos parecidos nos últimos 7 dias, concentrados nos blocos CG e CN — todos no térreo.',
+    relatos:'12 relatos semelhantes', ups:402, coments:88 },
+  { id:'ru-fila', cat:'Alimentação', campus:'Campina Grande', titulo:'Fila e capacidade do RU no almoço',
+    motivo:'341 apoios em 72 h, com picos toda segunda e quinta entre 11h30 e 12h30.',
+    relatos:'6 relatos semelhantes', ups:341, coments:64 },
+  { id:'cn302', cat:'Climatização', campus:'Campina Grande', titulo:'Climatização das salas do Bloco CN',
+    motivo:'4 salas diferentes relatadas na mesma semana; a 302 concentra a maior parte dos comentários.',
+    relatos:'4 relatos semelhantes', ups:298, coments:51 },
+  { id:'rampa-bc', cat:'Acessibilidade', campus:'Campina Grande', titulo:'Acessibilidade das entradas do CH',
+    motivo:'Menos relatos que os outros tópicos, mas taxa de comentários 3× acima da média do feed.',
+    relatos:'3 relatos semelhantes', ups:97, coments:37 }
+];
+
+const CHIP = (on) => on
+  ? 'border:1px solid #1B2330;background:#1B2330;color:#E9E3D7;border-radius:999px;padding:6px 12px;font-size:12.5px;cursor:pointer;white-space:nowrap'
+  : 'border:1px solid #E4E0D6;background:#FFFFFF;color:#3D4753;border-radius:999px;padding:6px 12px;font-size:12.5px;cursor:pointer;white-space:nowrap';
+
+const TAB = (on) => on
+  ? 'padding:9px 4px;margin-right:10px;font-size:14px;font-weight:600;color:#1B2330;border-bottom:2px solid #23456B;cursor:pointer'
+  : 'padding:9px 4px;margin-right:10px;font-size:14px;font-weight:500;color:#8A8478;border-bottom:2px solid transparent;cursor:pointer';
+
+const TOPBTN = (on) => on
+  ? 'height:30px;padding:0 12px;border-radius:999px;border:1px solid #1B2330;background:#1B2330;color:#E9E3D7;font-size:12px;font-weight:600;cursor:pointer'
+  : 'height:30px;padding:0 12px;border-radius:999px;border:1px solid #D5D0C4;background:#FFFFFF;color:#3D4753;font-size:12px;cursor:pointer';
+
+const ASSIST_STEPS = [
+  { q:'Certo. Onde exatamente isso acontece?', chips:['CCT · Bloco CN','CH · Bloco BC','RU','Setor de Aulas'] },
+  { q:'Com que frequência?', chips:['Todo dia','Algumas vezes por semana','Desde o início do período'] },
+  { q:'Quem é afetado?', chips:['Só a minha turma','O bloco inteiro','Qualquer pessoa que passa ali'] }
+];
+
+class Component extends DCLogic {
+  state = {
+    screen:'feed', loggedIn:false, query:'', cat:'Todas', campus:'Todos os campi', curso:'Todos os cursos',
+    detailId:'cn302', ups:{}, upset:{}, extra:{}, commentText:'', gate:null, toast:'', reportDone:false,
+    profTab:'relatos', editingId:null, editText:'',
+    deletedPosts:[], deletedComments:[],
+    form:{ texto:'', cat:'', campus:'Campina Grande', bloco:'CCT · Bloco CN', sala:'', anon:false, foto:false },
+    assist:false, chat:[], assistStep:-1
+  };
+
+  componentDidMount() {
+    const p = this.props || {};
+    const patch = {};
+    if (p.estadoInicial === 'Logado') patch.loggedIn = true;
+    if (p.telaInicial && p.telaInicial !== 'Feed') {
+      patch.screen = { 'Em alta':'trending', 'Detalhe':'detail', 'Novo relato':'create', 'Login':'login', 'Cadastro':'signup', 'Perfil':'profile' }[p.telaInicial] || 'feed';
+    }
+    if (Object.keys(patch).length) this.setState(patch);
+  }
+
+  go = (screen) => this.setState({ screen, gate:null, reportDone:false });
+  flash = (toast) => { this.setState({ toast }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast:'' }), 1900); };
+  gate = (action) => { if (this.state.loggedIn) return false; this.setState({ gate:action }); return true; };
+
+  upsOf = (c) => c.ups + (this.state.ups[c.id] || 0);
+
+  toggleUp = (id, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (this.gate('apoiar')) return;
+    const on = !!this.state.upset[id];
+    this.setState(s => ({
+      upset:{ ...s.upset, [id]: !on },
+      ups:{ ...s.ups, [id]: (s.ups[id] || 0) + (on ? -1 : 1) }
+    }));
+  };
+
+  all = () => {
+    const created = this.state.created || [];
+    return created.concat(DATA).filter(c => this.state.deletedPosts.indexOf(c.id) < 0);
+  };
+
+  commentsOf = (id) => {
+    const base = (this.all().find(c => c.id === id) || {}).comentarios || [];
+    return base.concat(this.state.extra[id] || []);
+  };
+
+  renderVals() {
+    const s = this.state, p = this.props || {};
+    const logged = s.loggedIn;
+    const mode = p.frameMode || 'Mobile + Desktop';
+
+    const frames = [];
+    if (mode !== 'Só desktop') frames.push({ key:'m', mobile:true, desktop:false, label:'Mobile · 390 × 844',
+      shellStyle:{ width:390, height:844, background:'#F2EEE6', border:'1px solid #DAD5C9', borderRadius:26, boxShadow:'0 22px 50px -28px rgba(27,35,48,.34)', overflow:'hidden', display:'flex', flexDirection:'column', position:'relative' },
+      colStyle:{ flex:1, minWidth:0, padding:'14px 14px 0', display:'flex', flexDirection:'column' } });
+    if (mode !== 'Só mobile') frames.push({ key:'d', mobile:false, desktop:true, label:'Desktop · 1180 × 844',
+      shellStyle:{ width:1180, height:844, background:'#F2EEE6', border:'1px solid #DAD5C9', borderRadius:14, boxShadow:'0 22px 50px -28px rgba(27,35,48,.34)', overflow:'hidden', display:'flex', flexDirection:'column', position:'relative' },
+      colStyle:{ width:600, flex:'none', padding:'22px 0 0', display:'flex', flexDirection:'column' } });
+
+    const q = s.query.trim().toLowerCase();
+    const feed = this.all().filter(c =>
+      (s.cat === 'Todas' || c.cat === s.cat) &&
+      (s.campus === 'Todos os campi' || c.campus === s.campus) &&
+      (s.curso === 'Todos os cursos' || c.curso === s.curso) &&
+      (!q || (c.titulo + ' ' + c.texto + ' ' + c.local + ' ' + c.cat).toLowerCase().indexOf(q) >= 0)
+    ).map(c => ({
+      ...c,
+      ups: this.upsOf(c),
+      nComentarios: this.commentsOf(c.id).length,
+      autor: c.autor === 'Anônimo' ? 'Anônimo' : c.autor,
+      temSimilares: c.similares > 0,
+      similaresLabel: c.similares + ' relatos semelhantes agrupados neste tópico',
+      open: () => this.setState({ screen:'detail', detailId:c.id, reportDone:false }),
+      up: (e) => this.toggleUp(c.id, e),
+      upStyle: s.upset[c.id]
+        ? { height:32, padding:'0 12px', borderRadius:8, border:'1px solid #23456B', background:'#23456B', color:'#fff', fontSize:12.5, fontWeight:600, cursor:'pointer' }
+        : { height:32, padding:'0 12px', borderRadius:8, border:'1px solid #E4E0D6', background:'#fff', color:'#3D4753', fontSize:12.5, fontWeight:500, cursor:'pointer' }
+    }));
+
+    const d0 = this.all().find(c => c.id === s.detailId) || DATA[0];
+    const detail = {
+      ...d0,
+      ups: this.upsOf(d0),
+      iniciais: d0.autor === 'Anônimo' ? 'AN' : d0.autor.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase(),
+      temSimilares: d0.similares > 0,
+      similaresLabel: d0.similares + ' relatos semelhantes foram agrupados aqui',
+      nComentariosLabel: this.commentsOf(d0.id).length + ' comentários',
+      up: () => this.toggleUp(d0.id),
+      upStyle: s.upset[d0.id]
+        ? { height:40, padding:'0 16px', borderRadius:9, border:'1px solid #23456B', background:'#23456B', color:'#fff', fontSize:14, fontWeight:600, cursor:'pointer' }
+        : { height:40, padding:'0 16px', borderRadius:9, border:'1px solid #23456B', background:'#fff', color:'#23456B', fontSize:14, fontWeight:600, cursor:'pointer' }
+    };
+
+    const navLabels = ['Feed','Em alta','Detalhe','Novo relato','Login','Cadastro','Perfil'];
+    const navMap = { 'Feed':'feed','Em alta':'trending','Detalhe':'detail','Novo relato':'create','Login':'login','Cadastro':'signup','Perfil':'profile' };
+
+    const myPosts = [
+      { id:'bebedouro', cat:'Salas de aula', local:'Setor de Aulas · Corredor B', titulo:'Bebedouro do corredor B só solta água quente', ups:63, coments:0, visibilidade:'público', anon:false },
+      { id:'rampa-bc', cat:'Acessibilidade', local:'CH · Bloco BC', titulo:'A rampa do BC termina em um degrau de 12 cm', ups:97, coments:2, visibilidade:'anônimo', anon:true }
+    ].filter(x => s.deletedPosts.indexOf(x.id) < 0).map(x => ({
+      ...x,
+      editando: s.editingId === x.id,
+      lendo: s.editingId !== x.id,
+      visStyle: x.anon
+        ? { fontFamily:"'IBM Plex Mono',monospace", fontSize:10, letterSpacing:'.08em', textTransform:'uppercase', color:'#6C7683', background:'#E9E3D7', border:'1px solid #E4E0D6', borderRadius:999, padding:'3px 8px' }
+        : { fontFamily:"'IBM Plex Mono',monospace", fontSize:10, letterSpacing:'.08em', textTransform:'uppercase', color:'#8A8478', background:'transparent', border:'1px solid #E4E0D6', borderRadius:999, padding:'3px 8px' },
+      edit: () => this.setState({ editingId:x.id, editText:x.titulo }),
+      del: () => { this.setState(st => ({ deletedPosts: st.deletedPosts.concat(x.id), editingId:null })); this.flash('Relato excluído'); }
+    }));
+
+    const myComments = [
+      { id:'c1', em:'Fila do RU passa de 40 minutos no almoço', texto:'Segunda e quinta é pior. Parece que o cardápio desses dias puxa mais gente.', quando:'há 3 h' },
+      { id:'c2', em:'Ar-condicionado da CN 302 parado há três semanas', texto:'A 305 também está sem. Vale agrupar os dois relatos.', quando:'há 1 d' }
+    ].filter(x => s.deletedComments.indexOf(x.id) < 0).map(x => ({
+      ...x, del: () => { this.setState(st => ({ deletedComments: st.deletedComments.concat(x.id) })); this.flash('Comentário excluído'); }
+    }));
+
+    const txt = s.form.texto.toLowerCase();
+    let sug = '';
+    if (/ar[- ]condicionado|calor|clima|quente na sala|ventila/.test(txt)) sug = 'Climatização';
+    else if (/banheiro|papel|sabão|sabao|torneira|descarga/.test(txt)) sug = 'Banheiros';
+    else if (/ru|fila|almoço|almoco|cantina|comida|refeit/.test(txt)) sug = 'Alimentação';
+    else if (/rampa|cadeira de rodas|acessib|elevador|degrau/.test(txt)) sug = 'Acessibilidade';
+    else if (/wi-?fi|internet|eduroam|rede/.test(txt)) sug = 'Internet';
+    else if (/luz|lâmpada|lampada|escuro|poste|ilumin/.test(txt)) sug = 'Iluminação';
+    else if (/laborat|capela|reagente|bancada/.test(txt)) sug = 'Laboratórios';
+    else if (txt.length > 24) sug = 'Salas de aula';
+
+    const gateCopy = {
+      apoiar:['Entre para apoiar','Apoios mostram quantas pessoas passam pelo mesmo problema. Para dar o seu, é preciso ter conta — ler e buscar continua livre.'],
+      comentar:['Entre para comentar','Comentários são a forma de a comunidade responder a um relato. Para escrever o seu, crie uma conta em um minuto.'],
+      publicar:['Entre para publicar','Só quem tem conta publica relatos. Você pode escolher aparecer com seu nome ou como anônimo em cada publicação.']
+    }[s.gate] || ['',''];
+
+    return {
+      frames, feed, detail, trending: TRENDING.map((t,i) => ({ ...t, rank: String(i+1).padStart(2,'0'), open: () => this.setState({ screen:'detail', detailId:t.id, reportDone:false }) })),
+      detailComments: this.commentsOf(d0.id),
+      feedCount: feed.length + (feed.length === 1 ? ' relato' : ' relatos') + (s.cat === 'Todas' && !q ? ' · mais recentes primeiro' : ' · filtrado'),
+
+      isVisitor: !logged, isLogged: logged,
+      isFeed: s.screen === 'feed', isTrending: s.screen === 'trending', isDetail: s.screen === 'detail',
+      isCreate: s.screen === 'create', isLogin: s.screen === 'login', isSignup: s.screen === 'signup', isProfile: s.screen === 'profile',
+
+      query: s.query, onQuery: e => this.setState({ query:e.target.value }),
+      campus: s.campus, onCampus: e => this.setState({ campus:e.target.value }),
+      curso: s.curso, onCurso: e => this.setState({ curso:e.target.value }),
+      campusOpts: ['Todos os campi'].concat(CAMPI), cursoOpts: ['Todos os cursos'].concat(CURSOS),
+      campusList: CAMPI, blocoList: BLOCOS, periodoList: PERIODOS,
+      catChips: ['Todas'].concat(CATS).map(c => ({ label:c, style: CHIP(s.cat === c), go: () => this.setState({ cat:c }) })),
+
+      tabRecentes: () => this.go('feed'), tabAlta: () => this.go('trending'),
+      tabRecentesStyle: TAB(s.screen === 'feed'), tabAltaStyle: TAB(s.screen === 'trending'),
+
+      goFeed: () => this.go('feed'), goTrending: () => this.go('trending'), goProfile: () => this.go('profile'),
+      goLogin: () => this.go('login'), goSignup: () => this.go('signup'),
+      goCreate: () => { if (this.gate('publicar')) return; this.go('create'); },
+
+      navButtons: navLabels.map(l => ({ label:l, style: TOPBTN(navMap[l] === s.screen), go: () => this.go(navMap[l]) })),
+      sideNav: [['Feed','feed'],['Em alta','trending'],['Novo relato','create'],['Perfil','profile']].map(([l,k]) => ({
+        label:l, go: () => { if ((k === 'create' || k === 'profile') && this.gate(k === 'create' ? 'publicar' : 'comentar')) return; this.go(k); },
+        style: { padding:'9px 12px', borderRadius:9, fontSize:14, fontWeight: s.screen === k ? 600 : 500, color: s.screen === k ? '#1B2330' : '#6C7683', background: s.screen === k ? '#FFFFFF' : 'transparent', border: s.screen === k ? '1px solid #E4E0D6' : '1px solid transparent', cursor:'pointer' }
+      })),
+      bottomNav: [['Feed','feed','▤'],['Em alta','trending','▲'],['Publicar','create','＋'],['Perfil','profile','◍']].map(([l,k,icon]) => ({
+        label:l, icon,
+        go: () => { if ((k === 'create' || k === 'profile') && this.gate(k === 'create' ? 'publicar' : 'comentar')) return; this.go(k); },
+        style: { flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4, padding:'8px 0', color: s.screen === k ? '#23456B' : '#8A8478', fontWeight: s.screen === k ? 600 : 500, cursor:'pointer' }
+      })),
+
+      setVisitor: () => this.setState({ loggedIn:false, gate:null }),
+      setLogged: () => this.setState({ loggedIn:true, gate:null }),
+      stVisitorStyle: TOPBTN(!logged), stLoggedStyle: TOPBTN(logged),
+
+      commentText: s.commentText, onComment: e => this.setState({ commentText:e.target.value }),
+      postComment: () => {
+        const t = s.commentText.trim(); if (!t) return;
+        this.setState(st => ({
+          extra: { ...st.extra, [d0.id]: (st.extra[d0.id] || []).concat({ autor:'Marina Vasconcelos · CC', iniciais:'MV', quando:'agora', texto:t }) },
+          commentText:''
+        }));
+        this.flash('Comentário publicado');
+      },
+      gateComentar: () => this.gate('comentar'),
+      denunciar: () => { this.setState({ reportDone:true }); this.flash('Denúncia registrada'); },
+      reportDone: s.reportDone,
+
+      gateOpen: !!s.gate, gateTitle: gateCopy[0], gateBody: gateCopy[1],
+      closeGate: () => this.setState({ gate:null }), stop: e => e.stopPropagation(),
+      toastOpen: !!s.toast, toast: s.toast,
+
+      userName:'Marina Vasconcelos', userFirst:'Marina', userMeta:'Ciência da Computação · Campina Grande · 2026.2',
+      logout: () => this.setState({ loggedIn:false, screen:'feed' }),
+
+      profRelatos: () => this.setState({ profTab:'relatos' }), profComentarios: () => this.setState({ profTab:'comentarios' }),
+      profRelatosStyle: TAB(s.profTab === 'relatos'), profComentariosStyle: TAB(s.profTab === 'comentarios'),
+      profIsRelatos: s.profTab === 'relatos', profIsComentarios: s.profTab === 'comentarios',
+      myPosts, myComments,
+      editText: s.editText, onEditText: e => this.setState({ editText:e.target.value }),
+      saveEdit: () => { this.setState({ editingId:null }); this.flash('Relato atualizado'); },
+
+      formTexto: s.form.texto, onFormTexto: e => this.setState(st => ({ form:{ ...st.form, texto:e.target.value } })),
+      formCampus: s.form.campus, onFormCampus: e => this.setState(st => ({ form:{ ...st.form, campus:e.target.value } })),
+      formBloco: s.form.bloco, onFormBloco: e => this.setState(st => ({ form:{ ...st.form, bloco:e.target.value } })),
+      formSala: s.form.sala, onFormSala: e => this.setState(st => ({ form:{ ...st.form, sala:e.target.value } })),
+      formCats: CATS.map(c => ({ label:c, style: CHIP(s.form.cat === c), go: () => this.setState(st => ({ form:{ ...st.form, cat:c } })) })),
+      temSugestao: !!sug && sug !== s.form.cat, sugestao: sug,
+      aceitarSugestao: () => this.setState(st => ({ form:{ ...st.form, cat:sug } })),
+      toggleFoto: () => this.setState(st => ({ form:{ ...st.form, foto:!st.form.foto } })),
+      fotoBoxLabel: s.form.foto ? 'foto anexada — toque para remover' : 'toque para anexar uma foto',
+      fotoBoxStyle: s.form.foto
+        ? { height:110, borderRadius:10, border:'1px solid #C6D5E6', background:'repeating-linear-gradient(135deg,#E7EDF6 0 10px,#F3F6FB 10px 20px)', display:'grid', placeItems:'center', fontFamily:"'IBM Plex Mono',monospace", fontSize:11.5, color:'#23456B', cursor:'pointer' }
+        : { height:110, borderRadius:10, border:'1px dashed #D5D0C4', background:'#FAF8F3', display:'grid', placeItems:'center', fontFamily:"'IBM Plex Mono',monospace", fontSize:11.5, color:'#9C958A', cursor:'pointer' },
+      anonHint: s.form.anon ? 'Seu nome não aparece. O relato entra como “Anônimo”.' : 'Seu relato aparece como Marina Vasconcelos · CC.',
+      anonTrackStyle: { width:48, height:28, flex:'none', borderRadius:999, background: s.form.anon ? '#23456B' : '#DCD7CB', display:'flex', alignItems:'center', padding:3, transition:'background .18s' },
+      anonKnobStyle: { width:22, height:22, borderRadius:999, background:'#fff', transform: s.form.anon ? 'translateX(20px)' : 'translateX(0)', transition:'transform .18s cubic-bezier(.2,.8,.2,1)', boxShadow:'0 1px 3px rgba(0,0,0,.2)' },
+      toggleAnon: () => this.setState(st => ({ form:{ ...st.form, anon:!st.form.anon } })),
+      publicar: () => {
+        const f = s.form;
+        if (!f.texto.trim()) { this.flash('Escreva o que aconteceu'); return; }
+        const id = 'novo-' + Date.now();
+        const titulo = f.texto.trim().split('\n')[0].slice(0, 78);
+        const novo = { id, cat: f.cat || sug || 'Salas de aula', campus:f.campus, curso:'Ciência da Computação',
+          local: f.bloco + (f.sala ? ' · ' + f.sala : ''), quando:'agora', ups:1, foto:f.foto,
+          fotoLabel:'foto — anexada por você', similares:0,
+          autor: f.anon ? 'Anônimo' : 'Marina Vasconcelos · CC', titulo,
+          resumo: f.texto.trim().slice(0, 150), texto: f.texto.trim(), comentarios:[] };
+        this.setState(st => ({ created: [novo].concat(st.created || []), screen:'detail', detailId:id,
+          form:{ texto:'', cat:'', campus:'Campina Grande', bloco:'CCT · Bloco CN', sala:'', anon:false, foto:false }, assist:false, chat:[], assistStep:-1 }));
+        this.flash('Relato publicado');
+      },
+
+      assistOn: s.assist,
+      modoLivre: () => this.setState({ assist:false }),
+      modoAssistido: () => this.setState({ assist:true, assistStep:0, chat:[{ role:'bot', text:'Me conta em uma frase o que está acontecendo — eu completo o resto com você.' }] }),
+      modoLivreStyle: CHIP(!s.assist), modoAssistidoStyle: CHIP(s.assist),
+      chat: s.chat.map(m => ({ text:m.text, style: m.role === 'bot'
+        ? { alignSelf:'flex-start', maxWidth:'88%', background:'#F5F2EB', border:'1px solid #EDEAE2', borderRadius:'12px 12px 12px 4px', padding:'10px 12px', fontSize:13.5, lineHeight:1.5, color:'#2E3742' }
+        : { alignSelf:'flex-end', maxWidth:'88%', background:'#23456B', color:'#fff', borderRadius:'12px 12px 4px 12px', padding:'10px 12px', fontSize:13.5, lineHeight:1.5 } })),
+      chatChips: (() => {
+        const step = s.assistStep;
+        if (step < 0 || step > 3) return [];
+        if (step === 0) {
+          return ['Ar parado na sala','Banheiro sem papel','Fila do RU','Rampa com degrau'].map(label => ({
+            label, go: () => this.setState(st => ({
+              chat: st.chat.concat({ role:'me', text:label }, { role:'bot', text:ASSIST_STEPS[0].q }), assistStep:1,
+              form:{ ...st.form, texto: label }
+            }))
+          }));
+        }
+        const st0 = ASSIST_STEPS[step - 1];
+        return st0.chips.map(label => ({
+          label, go: () => this.setState(prev => {
+            const nextStep = step + 1;
+            const answers = (prev.answers || []).concat(label);
+            if (nextStep <= 3) {
+              return { chat: prev.chat.concat({ role:'me', text:label }, { role:'bot', text:ASSIST_STEPS[nextStep - 1].q }), assistStep:nextStep, answers };
+            }
+            const base = prev.chat.filter(m => m.role === 'me')[0];
+            const texto = (base ? base.text : 'Problema relatado') + ' em ' + answers[0] + '.\n\nAcontece: ' + answers[1].toLowerCase() + '. Afeta: ' + answers[2].toLowerCase() + '.\n\nO problema já foi comentado entre os alunos, mas segue sem solução. Registro aqui para juntar com outros relatos parecidos e mostrar o tamanho real da situação.';
+            return {
+              chat: prev.chat.concat({ role:'me', text:label }, { role:'bot', text:'Montei uma descrição com o que você me disse e joguei no campo abaixo. Ajuste o que quiser antes de publicar.' }),
+              assistStep:4, answers,
+              form:{ ...prev.form, texto, bloco: answers[0] }
+            };
+          })
+        }));
+      })()
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -19,7 +19,6 @@ export default function CreatePost() {
   const [campus, setCampus] = useState('');
   const [bloco, setBloco] = useState('');
   const [sala, setSala] = useState('');
-  const [anon, setAnon] = useState(false);
   const [fotos, setFotos] = useState([]);
   const fileInput = useRef(null);
 
@@ -142,7 +141,7 @@ export default function CreatePost() {
       flash('Selecione o local dentro do campus');
       return;
     }
-    const id = createPost({ texto, cat: cat || sug, campus, bloco, sala, anon, fotos });
+    const id = createPost({ texto, cat: cat || sug, campus, bloco, sala, fotos });
     if (id) navigate(`/relato/${id}`);
   }
 
@@ -263,17 +262,9 @@ export default function CreatePost() {
           </div>
         </div>
 
-        <button className="toggle-row" onClick={() => setAnon((a) => !a)} type="button">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Publicar como anônimo</div>
-            <div style={{ fontSize: 12.5, color: 'var(--label)' }}>
-              {anon ? 'Seu nome não aparece. O relato entra como "Anônimo".' : 'Seu relato aparece com seu nome e curso.'}
-            </div>
-          </div>
-          <div className={`toggle-track ${anon ? 'on' : ''}`}>
-            <div className={`toggle-knob ${anon ? 'on' : ''}`} />
-          </div>
-        </button>
+        <div className="identidade-aviso">
+          O relato é publicado com seu nome e curso. Não existe publicação anônima.
+        </div>
 
         <button className="btn" style={{ height: 46, fontSize: 15 }} onClick={publicar}>Publicar relato</button>
       </div>

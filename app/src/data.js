@@ -150,7 +150,7 @@ export const POSTS = [
     texto: 'O ar da 302 parou na última semana de junho e até hoje ninguém apareceu.\n\nÀs 14h a sala tem 60 pessoas em aula de Circuitos, janela que não abre e projetor ligado. Medi 34°C com o termômetro do laboratório. Metade da turma sai antes do intervalo, e quem fica não consegue prestar atenção em nada.\n\nJá abrimos chamado duas vezes pelo formulário do centro. Nenhuma resposta.',
     comentarios: [
       { autor: 'Juliana Prado', iniciais: 'JP', quando: 'há 1 h', texto: 'Mesma coisa na 304. A gente trocou de sala por conta própria semana passada.' },
-      { autor: 'Anônimo', iniciais: 'AN', quando: 'há 48 min', texto: 'Levei ventilador de casa. Isso não deveria ser normal.' },
+      { autor: 'Débora Lins · Eng. Elétrica', iniciais: 'DL', quando: 'há 48 min', texto: 'Levei ventilador de casa. Isso não deveria ser normal.' },
       { autor: 'Caio Ferreira · Eng. Materiais', iniciais: 'CF', quando: 'há 20 min', texto: 'Se todo mundo do CN relatar, dá pra mostrar que é o bloco inteiro e não uma sala.' }
     ]
   },
@@ -159,20 +159,20 @@ export const POSTS = [
     local: 'RU · Campus Campina Grande', quando: 'há 5 h', ups: 341, status: 'nao_resolvida',
     fotos: [{ cat: 'Alimentação', label: 'fila do RU às 11h50' }],
     similares: 6,
-    autor: 'Anônimo',
+    autor: 'Camila Serrano · CC',
     titulo: 'Fila do RU passa de 40 minutos no almoço',
     resumo: 'Fila dobra o corredor entre 11h30 e 12h30; quem tem aula às 13h come em pé ou desiste.',
     texto: 'Cheguei 11h40 e saí com a bandeja 12h27. A fila dobra o corredor inteiro e não tem cobertura, então em dia de sol é castigo.\n\nQuem tem aula às 13h no CCT simplesmente não consegue almoçar. Duas catracas para o campus inteiro não fecha a conta.',
     comentarios: [
       { autor: 'Marina Vasconcelos · CC', iniciais: 'MV', quando: 'há 3 h', texto: 'Segunda e quinta é pior. Parece que o cardápio desses dias puxa mais gente.' },
-      { autor: 'Anônimo', iniciais: 'AN', quando: 'há 2 h', texto: 'Abrir a segunda entrada resolveria metade do problema.' }
+      { autor: 'Igor Wanderley · CC', iniciais: 'IW', quando: 'há 2 h', texto: 'Abrir a segunda entrada resolveria metade do problema.' }
     ]
   },
   {
     id: 'papel-cg', cat: 'Banheiros', campus: 'Campina Grande', curso: 'Engenharia Civil',
     local: 'CCT · Bloco CG · Térreo', quando: 'há 7 h', ups: 186, status: 'nao_resolvida',
     fotos: [], similares: 12,
-    autor: 'Anônimo',
+    autor: 'Otávio Duarte · Eng. Civil',
     titulo: 'Banheiro masculino do CG está sem papel desde segunda',
     resumo: 'Sem papel higiênico e sem sabão a semana inteira; é o único banheiro do térreo do bloco.',
     texto: 'Segunda de manhã já não tinha. Hoje é quinta e continua igual: sem papel, sem sabão, e a torneira do meio pinga sem parar.\n\nÉ o único banheiro do térreo do CG, usado por todo mundo que tem aula no bloco.',
@@ -189,13 +189,13 @@ export const POSTS = [
       { cat: 'Iluminação', label: 'mesma entrada à noite' }
     ],
     similares: 3,
-    autor: 'Anônimo',
+    autor: 'Lúcia Peixoto · Direito',
     titulo: 'A rampa do BC termina em um degrau de 12 cm',
     resumo: 'A única rampa da entrada lateral desemboca num degrau — cadeirante não completa o percurso sozinho.',
     texto: 'A rampa foi feita, está lá, com corrimão e tudo. Só que no fim dela tem um degrau de uns 12 cm até o piso do corredor.\n\nNa prática, quem usa cadeira de rodas precisa de ajuda justamente no último metro. Uma colega da turma depende de alguém empurrar todo dia.',
     comentarios: [
       { autor: 'Lívia Nunes · Letras', iniciais: 'LN', quando: 'há 22 h', texto: 'Já vi gente quase capotar ali. É perigoso, não só incômodo.' },
-      { autor: 'Anônimo', iniciais: 'AN', quando: 'há 18 h', texto: 'Uma rampinha de concreto de meio metro resolveria.' }
+      { autor: 'Rafaela Cunha · Direito', iniciais: 'RC', quando: 'há 18 h', texto: 'Uma rampinha de concreto de meio metro resolveria.' }
     ]
   },
   {
@@ -207,7 +207,7 @@ export const POSTS = [
     resumo: 'Queda diária no turno da tarde; laboratório com aula prática dependente de acesso remoto fica parado.',
     texto: 'Todo dia por volta das 15h a rede do CJ some por 20 a 40 minutos. Acontece de segunda a sexta.\n\nA aula prática de simulação depende de acessar o servidor do laboratório. Quando cai, a aula acaba ali.',
     comentarios: [
-      { autor: 'Anônimo', iniciais: 'AN', quando: 'há 20 h', texto: 'Uso dados do celular pra conseguir entregar as coisas. Sai caro.' }
+      { autor: 'Newton Barros · Eng. Materiais', iniciais: 'NB', quando: 'há 20 h', texto: 'Uso dados do celular pra conseguir entregar as coisas. Sai caro.' }
     ]
   },
   {
@@ -220,7 +220,7 @@ export const POSTS = [
       { cat: 'Internet', label: 'poste sem lâmpada' }
     ],
     similares: 0,
-    autor: 'Anônimo',
+    autor: 'Vitor Hugo Alencar · Medicina',
     titulo: 'Estacionamento norte do CCT está no escuro desde o recesso',
     resumo: 'Seis postes apagados na saída das aulas da noite; alunas relatam evitar o trajeto sozinhas.',
     texto: 'Contei seis postes apagados. Quem sai da aula às 22h atravessa o estacionamento inteiro no escuro até o portão.\n\nVárias meninas da turma passaram a esperar em grupo pra sair. Não deveria ser assim.',
@@ -243,12 +243,12 @@ export const POSTS = [
     local: 'CES · Laboratório de Química II', quando: 'há 4 d', ups: 74, status: 'nao_resolvida',
     fotos: [{ cat: 'Laboratórios', label: 'capela de exaustão desligada' }],
     similares: 0,
-    autor: 'Anônimo',
+    autor: 'Sofia Rangel · Medicina',
     titulo: 'Capela de exaustão do Química II não liga',
     resumo: 'Prática com solventes acontece sem exaustão funcionando; turma faz o experimento com as janelas abertas.',
     texto: 'A capela não liga desde o começo do período. A prática de solventes foi feita com as janelas abertas e um ventilador de pé.\n\nAlém do risco, metade da turma saiu com dor de cabeça.',
     comentarios: [
-      { autor: 'Anônimo', iniciais: 'AN', quando: 'há 3 d', texto: 'Isso é questão de segurança, não de conforto.' }
+      { autor: 'Helena Braga · Medicina', iniciais: 'HB', quando: 'há 3 d', texto: 'Isso é questão de segurança, não de conforto.' }
     ]
   }
 ];
