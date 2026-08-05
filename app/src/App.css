@@ -19,6 +19,9 @@
   z-index: 20;
 }
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -28,6 +31,14 @@
   background: none;
   border: none;
   padding: 0;
+}
+/* Em em, para o símbolo acompanhar o font-size do .brand (19px no desktop,
+   17px no topo mobile) sem precisar de tamanho fixo em cada lugar. */
+.logo-mark {
+  height: 1.25em;
+  width: auto;
+  flex: none;
+  display: block;
 }
 .brand span { color: var(--accent); }
 .brand:hover { text-decoration: none; }
@@ -204,6 +215,17 @@
   color: #3D4753;
 }
 
+/* Os três selects dividem a linha. Sem min-width: 0 o select de cursos herda a
+   largura do nome mais longo ("Engenharia de Biotecnologia e Bioprocessos") e
+   empurra os outros para a linha de baixo. */
+.filters-row.selects { flex-wrap: nowrap; }
+.filters-row.selects .select-inline { flex: 1 1 0; min-width: 0; }
+
+@media (max-width: 560px) {
+  .filters-row.selects { flex-wrap: wrap; }
+  .filters-row.selects .select-inline { flex: 1 1 46%; }
+}
+
 /* ---------- Galeria de fotos (grade estilo Twitter) ---------- */
 .photo-grid {
   display: grid;
@@ -353,6 +375,108 @@
   background: #EEF6F1;
   border: 1px solid #C7E2D3;
 }
+
+.badge-revisao {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 3px 8px;
+  white-space: nowrap;
+  color: var(--warn-ink);
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+}
+
+.revisao-aviso {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--warn-ink);
+}
+
+.link-inline {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.denuncia-form {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  background: #FAF8F3;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+}
+.denuncia-opcao {
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.denuncia-opcao:hover { background: #F5F2EB; border-color: var(--border-strong); }
+
+.storage-banner {
+  background: var(--danger-bg);
+  border-bottom: 1px solid var(--danger-border);
+  color: var(--danger-ink);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 10px 24px;
+}
+
+.aviso-senha {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--warn-ink);
+}
+
+.topico-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: 10px;
+  padding: 12px;
+}
+.topico-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--warn-border);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink);
+  cursor: pointer;
+}
+.topico-item:hover { background: #FFFDF8; }
 
 .identidade-aviso {
   border-top: 1px solid #EDEAE2;

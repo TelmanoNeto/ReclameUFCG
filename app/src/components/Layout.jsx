@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useApp } from '../AppContext.jsx';
 import { initials } from '../time.js';
 import GateModal from './GateModal.jsx';
+import LogoMark from './LogoMark.jsx';
 import Toast from './Toast.jsx';
 import TrendingAside from './TrendingAside.jsx';
 
@@ -10,18 +11,20 @@ const SIDE_ITEMS = [
   { label: 'Feed', path: '/', gated: false },
   { label: 'Em alta', path: '/em-alta', gated: false },
   { label: 'Novo relato', path: '/novo', gated: 'publicar' },
-  { label: 'Perfil', path: '/perfil', gated: 'comentar' }
+  // 'perfil' só exige conta, não e-mail confirmado — senão a pessoa não
+  // alcançaria a própria tela de verificação a partir do menu.
+  { label: 'Perfil', path: '/perfil', gated: 'perfil' }
 ];
 
 const BOTTOM_ITEMS = [
   { label: 'Feed', path: '/', icon: '▤', gated: false },
   { label: 'Em alta', path: '/em-alta', icon: '▲', gated: false },
   { label: 'Publicar', path: '/novo', icon: '＋', gated: 'publicar' },
-  { label: 'Perfil', path: '/perfil', icon: '◍', gated: 'comentar' }
+  { label: 'Perfil', path: '/perfil', icon: '◍', gated: 'perfil' }
 ];
 
 export default function Layout() {
-  const { isLogged, currentUser, openGate } = useApp();
+  const { isLogged, currentUser, openGate, ehAdmin, firebaseConfigurado, erroFeed, emailVerificado } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const [query, setQuery] = useState('');
@@ -40,7 +43,8 @@ export default function Layout() {
     <div className="app-shell">
       <div className="topbar">
         <button className="brand" onClick={() => go('/')}>
-          Reclame<span>UFCG</span>
+          <LogoMark />
+          <span className="brand-nome">Reclame<span>UFCG</span></span>
         </button>
         <div className="searchbox">
           <span className="mono" style={{ marginRight: 0 }}>/</span>
@@ -71,7 +75,8 @@ export default function Layout() {
       <div className="mobile-topbar">
         <div className="mobile-topbar-row">
           <button className="brand" style={{ fontSize: 17 }} onClick={() => go('/')}>
-            Reclame<span>UFCG</span>
+            <LogoMark />
+            <span className="brand-nome">Reclame<span>UFCG</span></span>
           </button>
           {!isLogged && (
             <button className="btn secondary" style={{ height: 30, padding: '0 13px', fontSize: 12.5 }} onClick={() => go('/entrar')}>Entrar</button>
@@ -88,6 +93,20 @@ export default function Layout() {
         </div>
       </div>
 
+      {!firebaseConfigurado && (
+        <div className="storage-banner" role="alert">
+          O servidor não está configurado neste ambiente: falta o arquivo <code>app/.env.local</code> com as chaves do
+          Firebase. O app abre, mas nada é carregado nem salvo.
+        </div>
+      )}
+      {firebaseConfigurado && erroFeed && <div className="storage-banner" role="alert">{erroFeed}</div>}
+      {isLogged && !emailVerificado && (
+        <div className="storage-banner">
+          Falta confirmar seu e-mail para publicar, comentar e apoiar.{' '}
+          <button className="link-inline" onClick={() => navigate('/verificar')}>Confirmar agora</button>
+        </div>
+      )}
+
       <div className="body-row">
         <div className="sidebar">
           {SIDE_ITEMS.map((it) => (
@@ -99,6 +118,14 @@ export default function Layout() {
               {it.label}
             </button>
           ))}
+          <button className={`sidebar-item ${location.pathname === '/regras' ? 'on' : ''}`} onClick={() => go('/regras')}>
+            Regras
+          </button>
+          {ehAdmin && (
+            <button className={`sidebar-item ${location.pathname === '/moderacao' ? 'on' : ''}`} onClick={() => go('/moderacao')}>
+              Moderação
+            </button>
+          )}
           <div className="sidebar-hint">Navegar é livre. Apoiar, comentar e publicar pedem conta.</div>
         </div>
 

@@ -1,0 +1,34 @@
+{
+  "indexes": [
+    {
+      "//": "Moderação: relatos com denúncia, mais denunciados primeiro.",
+      "collectionGroup": "relatos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "nDenuncias", "order": "DESCENDING" },
+        { "fieldPath": "criadoEm", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "//": "Agrupamento por tópico (categoria + campus + bloco). Não é usado hoje — o agrupamento é feito em memória sobre o snapshot do feed —, mas fica pronto para quando o volume passar do limite carregado.",
+      "collectionGroup": "relatos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "cat", "order": "ASCENDING" },
+        { "fieldPath": "campus", "order": "ASCENDING" },
+        { "fieldPath": "localBase", "order": "ASCENDING" },
+        { "fieldPath": "nApoios", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "//": "Meus comentários, mais recentes primeiro (aba do perfil).",
+      "collectionGroup": "comentarios",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "autorUid", "order": "ASCENDING" },
+        { "fieldPath": "criadoEm", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

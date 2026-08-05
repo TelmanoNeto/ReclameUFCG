@@ -42,15 +42,20 @@ export function maskPhone(value) {
   return `${ddd}${d.slice(2, 3)} ${d.slice(3, 7)}-${d.slice(7)}`;
 }
 
+// Encurta o nome do curso para caber ao lado do nome do autor.
+const ABREV_CURSO = {
+  'Ciência da Computação': 'CC',
+  'Comunicação Social — Jornalismo': 'Jornalismo',
+  'Engenharia de Biotecnologia e Bioprocessos': 'Eng. Biotecnologia',
+  'Medicina Veterinária': 'Med. Veterinária'
+};
+
 export function courseAbbrev(curso) {
-  const map = {
-    'Ciência da Computação': 'CC',
-    'Engenharia Elétrica': 'Eng. Elétrica',
-    'Engenharia Civil': 'Eng. Civil',
-    Medicina: 'Medicina',
-    Direito: 'Direito',
-    Letras: 'Letras',
-    'Engenharia de Materiais': 'Eng. Materiais'
-  };
-  return map[curso] || curso || '';
+  if (!curso) return '';
+  if (ABREV_CURSO[curso]) return ABREV_CURSO[curso];
+  return curso
+    .replace(/^Engenharia (de |da |)/, 'Eng. ')
+    .replace(/^Licenciatura em /, '')
+    .replace(/^Tecnologia em /, '')
+    .replace(/ — Língua /, ' ');
 }

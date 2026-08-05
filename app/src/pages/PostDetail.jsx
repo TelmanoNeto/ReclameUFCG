@@ -1,49 +1,64 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useApp } from '../AppContext.jsx';
+import { useApp, useComentarios } from '../AppContext.jsx';
 import { initials } from '../time.js';
+import { MOTIVOS_DENUNCIA } from '../data.js';
 import PhotoGrid from '../components/PhotoGrid.jsx';
 import { StatusBadge, StatusPicker } from '../components/StatusBadge.jsx';
 
 export default function PostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { allPosts, upsOf, isUpped, toggleUp, commentsOf, postComment, isLogged, openGate, flash, canChangeStatus, setPostStatus } = useApp();
+  const {
+    allPosts, feedCarregando, upsOf, isUpped, toggleUp, postComment, isLogged, openGate,
+    canChangeStatus, setPostStatus, similaresDe, tituloDoTopico, denunciar, jaDenunciou, revisaoDe
+  } = useApp();
   const [commentText, setCommentText] = useState('');
-  const [reportDone, setReportDone] = useState(false);
+  const [formDenuncia, setFormDenuncia] = useState(false);
+  const comments = useComentarios(id);
 
   const post = allPosts.find((p) => p.id === id);
   if (!post) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <button className="back-link" onClick={() => navigate('/')}>← voltar ao feed</button>
-        <div className="empty-state">Esse relato não existe mais.</div>
+        <div className="empty-state">{feedCarregando ? 'Carregando relato…' : 'Esse relato não existe mais.'}</div>
       </div>
     );
   }
 
   const ups = upsOf(post);
   const upped = isUpped(post.id);
-  const comments = commentsOf(post.id);
   const inic = initials(post.autor);
+  const similares = similaresDe(post);
+  const denunciado = jaDenunciou(post.id);
+  const revisao = revisaoDe(post);
 
-  function handlePostComment() {
-    if (!isLogged) {
-      openGate('comentar');
-      return;
-    }
-    postComment(post.id, commentText);
+  async function handlePostComment() {
+    if (openGate('comentar')) return;
+    const texto = commentText;
     setCommentText('');
+    await postComment(post.id, texto);
   }
 
-  function denunciar() {
-    setReportDone(true);
-    flash('Denúncia registrada');
+  async function enviarDenuncia(motivoId) {
+    if (await denunciar(post.id, motivoId)) setFormDenuncia(false);
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <button className="back-link" onClick={() => navigate('/')}>← voltar ao feed</button>
+
+      {revisao && (
+        <div className="revisao-aviso" role="status">
+          <strong>Este relato está em revisão.</strong>{' '}
+          {revisao.urgente
+            ? 'Alguém sinalizou que ele expõe dado pessoal de outra pessoa.'
+            : `${revisao.total} pessoas sinalizaram este relato para revisão.`}{' '}
+          Ele continua visível, mas saiu do “Em alta” até a equipe do projeto avaliar.{' '}
+          <button className="link-inline" onClick={() => navigate('/regras')}>Ver as regras</button>
+        </div>
+      )}
 
       <div className="card" style={{ padding: 18, gap: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -65,27 +80,53 @@ export default function PostDetail() {
             <StatusPicker status={post.status} onChange={(s) => setPostStatus(post, s)} />
           </div>
         )}
-        {post.similares > 0 && (
-          <div className="similar-pill" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 4 }} onClick={() => navigate('/em-alta')}>
+        {similares.length > 0 && (
+          <div className="topico-box">
             <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--warn-ink)' }}>
-              {post.similares} relatos semelhantes foram agrupados aqui
+              {similares.length === 1
+                ? 'Há outro relato do mesmo tipo neste bloco'
+                : `Há outros ${similares.length} relatos do mesmo tipo neste bloco`}
             </div>
-            <div style={{ fontSize: 12.5, color: '#9A6E2A' }}>Ver os relatos agrupados neste tópico →</div>
+            <div className="mono" style={{ letterSpacing: 0 }}>{tituloDoTopico(post)}</div>
+            {similares.map((s) => (
+              <button key={s.id} type="button" className="topico-item" onClick={() => navigate(`/relato/${s.id}`)}>
+                <span style={{ flex: 1 }}>{s.titulo}</span>
+                <span className="mono" style={{ letterSpacing: 0 }}>▲ {upsOf(s)}</span>
+              </button>
+            ))}
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', borderTop: '1px solid #EDEAE2', paddingTop: 14 }}>
           <button className={`up-btn big ${upped ? 'on' : ''}`} onClick={() => toggleUp(post.id)}>▲ Apoiar · {ups}</button>
           <div className="mono" style={{ letterSpacing: 0 }}>{comments.length} comentários</div>
           <span style={{ flex: 1 }} />
-          {isLogged && (
-            <button className="btn secondary" style={{ height: 32, padding: '0 12px', fontSize: 12.5, color: 'var(--label)' }} onClick={denunciar}>
+          {isLogged && !denunciado && (
+            <button
+              className="btn secondary"
+              style={{ height: 32, padding: '0 12px', fontSize: 12.5, color: 'var(--label)' }}
+              onClick={() => setFormDenuncia((v) => !v)}
+            >
               ⚑ Denunciar
             </button>
           )}
         </div>
-        {reportDone && (
+        {formDenuncia && !denunciado && (
+          <div className="denuncia-form">
+            <div className="field-label">Por que este relato deve ser revisado?</div>
+            {MOTIVOS_DENUNCIA.map((m) => (
+              <button key={m.id} type="button" className="denuncia-opcao" onClick={() => enviarDenuncia(m.id)}>
+                {m.label}
+              </button>
+            ))}
+            <button className="btn ghost" style={{ height: 32, fontSize: 12.5 }} onClick={() => setFormDenuncia(false)}>
+              Cancelar
+            </button>
+          </div>
+        )}
+        {denunciado && (
           <div style={{ fontSize: 12.5, color: 'var(--ink-mute)', background: '#F5F2EB', borderRadius: 8, padding: '9px 11px' }}>
-            Denúncia enviada para revisão da comunidade.
+            Você denunciou este relato. Ele só entra em revisão quando outras pessoas denunciarem também —{' '}
+            <button className="link-inline" onClick={() => navigate('/regras')}>veja como funciona</button>.
           </div>
         )}
       </div>

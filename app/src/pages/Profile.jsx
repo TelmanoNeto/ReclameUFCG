@@ -1,20 +1,24 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../AppContext.jsx';
+import { useApp, useMeusComentarios } from '../AppContext.jsx';
 import { initials } from '../time.js';
 import { StatusBadge, StatusPicker } from '../components/StatusBadge.jsx';
 
 export default function Profile() {
-  const { isLogged, currentUser, logout, myPosts, myComments, upsOf, commentsOf, editPost, deletePost, deleteComment, setPostStatus } = useApp();
+  const { isLogged, currentUser, emailVerificado, authCarregando, logout, myPosts, upsOf, editPost, deletePost, deleteComment, setPostStatus } = useApp();
+  const myComments = useMeusComentarios(currentUser?.uid);
   const navigate = useNavigate();
   const [tab, setTab] = useState('relatos');
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState('');
 
+  // Só decide depois que a sessão do Firebase carregou — senão abrir /perfil
+  // direto na barra de endereços jogaria a pessoa para fora.
   useEffect(() => {
-    if (!isLogged) navigate('/');
-  }, [isLogged, navigate]);
+    if (!authCarregando && !isLogged) navigate('/');
+  }, [authCarregando, isLogged, navigate]);
 
+  if (authCarregando) return <div className="empty-state">Carregando…</div>;
   if (!isLogged) return null;
 
   function startEdit(post) {
@@ -37,6 +41,13 @@ export default function Profile() {
         <span style={{ flex: 1 }} />
         <button className="btn secondary" style={{ height: 32, padding: '0 12px', fontSize: 12.5 }} onClick={() => { logout(); navigate('/'); }}>Sair</button>
       </div>
+
+      {!emailVerificado && (
+        <div className="storage-banner" role="status">
+          Seu e-mail ainda não foi confirmado, então publicar, comentar e apoiar continuam bloqueados.{' '}
+          <button className="link-inline" onClick={() => navigate('/verificar')}>Confirmar agora</button>
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 2 }}>
         <button className={`tab ${tab === 'relatos' ? 'on' : ''}`} onClick={() => setTab('relatos')}>Meus relatos</button>
@@ -64,7 +75,7 @@ export default function Profile() {
                 <StatusPicker status={p.status} onChange={(s) => setPostStatus(p, s)} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9 }} className="mono">
                   <span style={{ letterSpacing: 0 }}>▲ {upsOf(p)}</span>
-                  <span style={{ letterSpacing: 0 }}>💬 {commentsOf(p.id).length}</span>
+                  <span style={{ letterSpacing: 0 }}>💬 {p.nComentarios || 0}</span>
                   <span style={{ flex: 1 }} />
                   {editando ? (
                     <button className="btn" style={{ height: 30, padding: '0 12px', fontSize: 12 }} onClick={() => saveEdit(p.id)}>Salvar</button>
@@ -98,7 +109,7 @@ export default function Profile() {
                 <button
                   className="btn secondary"
                   style={{ height: 30, padding: '0 11px', fontSize: 12, background: 'var(--danger-bg)', borderColor: 'var(--danger-border)', color: 'var(--danger-ink)' }}
-                  onClick={() => deleteComment(mc.id)}
+                  onClick={() => deleteComment(mc)}
                 >
                   Excluir
                 </button>

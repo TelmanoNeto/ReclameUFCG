@@ -2,17 +2,27 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../AppContext.jsx';
 import { CATS, CAMPI, LOCAIS_POR_CAMPUS, locaisDoCampus, MAX_FOTOS, ASSIST_STEPS, ASSIST_TEMAS, suggestCategory } from '../data.js';
-import { fileToCompressedDataURL } from '../image.js';
+import { prepararFoto, descartarFoto, cloudinaryConfigurado } from '../image.js';
+
+// Quantos locais o passo do assistido mostra por vez. Acima disso a lista
+// volta a ser uma parede de chips, que é o que a busca veio resolver.
+const LIMITE_SUGESTOES_LOCAL = 8;
 
 export default function CreatePost() {
-  const { createPost, isLogged, openGate, flash } = useApp();
+  const { createPost, isLogged, podeParticipar, authCarregando, openGate, flash } = useApp();
   const navigate = useNavigate();
+  const [publicando, setPublicando] = useState(false);
 
   const [assist, setAssist] = useState(false);
   const [chat, setChat] = useState([]);
   const [assistStep, setAssistStep] = useState(-1);
   const [answers, setAnswers] = useState({});
   const [tema, setTema] = useState(null);
+  // Só a etapa do local: o campus da sede tem mais de cem prédios, e mostrar
+  // todos como chip vira uma parede. Digitar filtra; a escolha continua saindo
+  // da lista oficial, senão 'CAA', 'caa' e 'bloco CAA' virariam tópicos
+  // diferentes no agrupamento (localBase em data.js).
+  const [buscaLocal, setBuscaLocal] = useState('');
 
   const [texto, setTexto] = useState('');
   const [cat, setCat] = useState('');
@@ -22,7 +32,13 @@ export default function CreatePost() {
   const [fotos, setFotos] = useState([]);
   const fileInput = useRef(null);
 
-  if (!isLogged) {
+  // A sessão do Firebase chega de forma assíncrona: sem esta espera, abrir
+  // /novo direto na barra de endereços expulsaria quem já está logado.
+  if (authCarregando) return <div className="empty-state">Carregando…</div>;
+
+  // Sem conta ou sem e-mail confirmado o servidor recusaria a publicação de
+  // qualquer jeito; openGate mostra qual dos dois é o caso.
+  if (!isLogged || !podeParticipar) {
     openGate('publicar');
     navigate('/');
     return null;
@@ -36,7 +52,44 @@ export default function CreatePost() {
     setAssistStep(0);
     setTema(null);
     setAnswers({});
+    setBuscaLocal('');
     setChat([{ role: 'bot', text: ASSIST_STEPS[0].q }]);
+  }
+
+  // "CAA", "caa" e "Cáa" precisam achar o mesmo bloco.
+  function normalizar(s) {
+    return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  }
+
+  /**
+   * Casa a busca com um local. Não é "contém": procurar "CO" por substring
+   * casaria com todo mundo, porque a palavra "Bloco" tem "co" dentro; e "RU"
+   * acharia "crustáceos" antes do Restaurante Universitário. Então valem três
+   * caminhos: início de palavra, a sigla do bloco, e a inicial das palavras do
+   * nome — que é como as pessoas chamam RU, HUAC, LSD.
+   */
+  function combina(local, busca) {
+    const q = normalizar(busca).trim();
+    if (!q) return false;
+
+    const semPrefixo = normalizar(local).replace(/^bloco /, '');
+    const palavras = semPrefixo.split(/[^a-z0-9]+/).filter(Boolean);
+    if (palavras.some((p) => p.startsWith(q))) return true;
+
+    // Sigla: 'ca 1' também responde por 'ca1'.
+    const sigla = palavras.slice(0, 2).join('');
+    if (sigla.startsWith(q.replace(/\s+/g, ''))) return true;
+
+    // Nos itens sem sigla ('Hospital Universitário Alcides Carneiro') as
+    // iniciais saem do nome inteiro — é como se acha HUAC.
+    const partes = normalizar(local).split(' · ');
+    const nome = partes.length > 1 ? partes.slice(1).join(' ') : semPrefixo;
+    const iniciais = nome
+      .split(/[^a-z0-9]+/)
+      .filter(Boolean)
+      .map((p) => p[0])
+      .join('');
+    return iniciais.startsWith(q);
   }
 
   // Troca de campus zera o local: as opções de um campus não valem no outro.
@@ -102,14 +155,32 @@ export default function CreatePost() {
     setTexto(montarTexto(novasRespostas, temaAtual));
   }
 
+  const passoAtual = assistStep >= 0 && assistStep < ASSIST_STEPS.length ? ASSIST_STEPS[assistStep] : null;
+  const buscandoLocal = passoAtual?.key === 'local';
+
+  // No passo do local a lista só aparece filtrada — com o campus da sede, são
+  // 116 opções. Nos outros passos são até 8 chips, que cabem na tela.
   const chatChips = (() => {
-    if (assistStep < 0 || assistStep >= ASSIST_STEPS.length) return [];
-    return opcoesDoPasso(assistStep, tema).map((label) => ({ label, go: () => pickAnswer(label) }));
+    if (!passoAtual) return [];
+    let opcoes = opcoesDoPasso(assistStep, tema);
+    if (buscandoLocal) {
+      opcoes = buscaLocal.trim()
+        ? opcoes.filter((o) => combina(o, buscaLocal)).slice(0, LIMITE_SUGESTOES_LOCAL)
+        : [];
+    }
+    return opcoes.map((label) => ({ label, go: () => pickAnswer(label) }));
   })();
 
+  // As fotos ficam só no navegador até a publicação — nada sobe para o
+  // Cloudinary enquanto a pessoa ainda está montando o relato, senão uma foto
+  // escolhida e removida viraria arquivo órfão lá.
   async function addFotos(fileList) {
     const arquivos = Array.from(fileList || []).filter((f) => f.type.startsWith('image/'));
     if (arquivos.length === 0) return;
+    if (!cloudinaryConfigurado) {
+      flash('O envio de fotos não está configurado neste ambiente');
+      return;
+    }
     const espaco = MAX_FOTOS - fotos.length;
     if (espaco <= 0) {
       flash(`Máximo de ${MAX_FOTOS} fotos por relato`);
@@ -117,18 +188,22 @@ export default function CreatePost() {
     }
     if (arquivos.length > espaco) flash(`Só cabem mais ${espaco} foto(s) neste relato`);
     try {
-      const novas = await Promise.all(arquivos.slice(0, espaco).map(fileToCompressedDataURL));
-      setFotos((atual) => atual.concat(novas.map((src) => ({ src, label: '' }))).slice(0, MAX_FOTOS));
+      const novas = await Promise.all(arquivos.slice(0, espaco).map((f) => prepararFoto(f)));
+      setFotos((atual) => atual.concat(novas).slice(0, MAX_FOTOS));
     } catch {
       flash('Não foi possível carregar alguma das imagens');
     }
   }
 
   function removerFoto(index) {
-    setFotos((atual) => atual.filter((_, i) => i !== index));
+    setFotos((atual) => {
+      descartarFoto(atual[index]);
+      return atual.filter((_, i) => i !== index);
+    });
   }
 
-  function publicar() {
+  async function publicar() {
+    if (publicando) return;
     if (!texto.trim()) {
       flash('Descreva o que aconteceu antes de publicar');
       return;
@@ -141,7 +216,9 @@ export default function CreatePost() {
       flash('Selecione o local dentro do campus');
       return;
     }
-    const id = createPost({ texto, cat: cat || sug, campus, bloco, sala, fotos });
+    setPublicando(true);
+    const id = await createPost({ texto, cat: cat || sug, campus, bloco, sala, fotos });
+    setPublicando(false);
     if (id) navigate(`/relato/${id}`);
   }
 
@@ -167,11 +244,29 @@ export default function CreatePost() {
               <div key={`${m.role}-${i}`} className={`chat-bubble ${m.role === 'bot' ? 'bot' : 'me'}`}>{m.text}</div>
             ))}
           </div>
+          {buscandoLocal && (
+            <input
+              className="input"
+              style={{ height: 38 }}
+              autoFocus
+              value={buscaLocal}
+              onChange={(e) => setBuscaLocal(e.target.value)}
+              placeholder="Digite o bloco ou o lugar — ex.: CAA, biblioteca, RU"
+              aria-label="Buscar o local dentro do campus"
+            />
+          )}
           <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
             {chatChips.map((cc) => (
               <button type="button" key={cc.label} className="chat-chip" onClick={cc.go}>{cc.label}</button>
             ))}
           </div>
+          {buscandoLocal && chatChips.length === 0 && (
+            <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+              {buscaLocal.trim()
+                ? 'Nenhum local com esse nome. Tente a sigla do bloco (CAA, BG, CO) ou parte do nome.'
+                : 'Comece a digitar para achar o local.'}
+            </div>
+          )}
         </div>
       )}
 
@@ -210,8 +305,8 @@ export default function CreatePost() {
           {fotos.length > 0 && (
             <div className={`photo-grid n${fotos.length} editable`}>
               {fotos.map((f, i) => (
-                <div key={f.src.slice(-32) + i} className="photo-cell">
-                  <img className="photo-cell-img" src={f.src} alt={`Foto ${i + 1} do relato`} />
+                <div key={f.preview} className="photo-cell">
+                  <img className="photo-cell-img" src={f.preview} alt={`Foto ${i + 1} do relato`} />
                   <button type="button" className="photo-remove" onClick={() => removerFoto(i)} aria-label={`Remover foto ${i + 1}`}>
                     ✕
                   </button>
@@ -263,10 +358,16 @@ export default function CreatePost() {
         </div>
 
         <div className="identidade-aviso">
-          O relato é publicado com seu nome e curso. Não existe publicação anônima.
+          O relato é publicado com seu nome e curso. Não existe publicação anônima.{' '}
+          <button type="button" className="link-inline" onClick={() => navigate('/regras')}>
+            Ler as regras da comunidade
+          </button>
         </div>
 
-        <button className="btn" style={{ height: 46, fontSize: 15 }} onClick={publicar}>Publicar relato</button>
+        <button className="btn" style={{ height: 46, fontSize: 15 }} onClick={publicar} disabled={publicando}>
+          {!publicando && 'Publicar relato'}
+          {publicando && (fotos.length > 0 ? 'Enviando fotos…' : 'Publicando…')}
+        </button>
       </div>
     </div>
   );

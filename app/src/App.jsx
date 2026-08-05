@@ -9,6 +9,9 @@ import CreatePost from './pages/CreatePost.jsx';
 import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
 import Profile from './pages/Profile.jsx';
+import Regras from './pages/Regras.jsx';
+import VerificarEmail from './pages/VerificarEmail.jsx';
+import Moderacao from './pages/Moderacao.jsx';
 
 function App() {
   return (
@@ -23,6 +26,9 @@ function App() {
             <Route path="/entrar" element={<Login />} />
             <Route path="/cadastro" element={<Signup />} />
             <Route path="/perfil" element={<Profile />} />
+            <Route path="/regras" element={<Regras />} />
+            <Route path="/verificar" element={<VerificarEmail />} />
+            <Route path="/moderacao" element={<Moderacao />} />
           </Route>
         </Routes>
       </BrowserRouter>

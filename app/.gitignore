@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Emuladores do Firebase (testes das Security Rules)
+firestore-debug.log
+ui-debug.log
+firebase-debug.log
+.firebase/

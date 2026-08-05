@@ -1,23 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { TRENDING_META } from '../data.js';
 import { useApp } from '../AppContext.jsx';
 import { StatusBadge } from '../components/StatusBadge.jsx';
 
 export default function Trending() {
   const navigate = useNavigate();
-  const { upsOf, allPosts } = useApp();
-
-  const trending = TRENDING_META.map((t, i) => {
-    const post = allPosts.find((p) => p.id === t.id);
-    return {
-      ...t,
-      rank: String(i + 1).padStart(2, '0'),
-      ups: post ? upsOf(post) : 0,
-      cat: post ? post.cat : '',
-      campus: post ? post.campus : '',
-      status: post ? post.status : null
-    };
-  });
+  const { topicosEmAlta, tituloDoTopico } = useApp();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -26,26 +13,42 @@ export default function Trending() {
         <button className="tab on">Em alta</button>
       </div>
       <div style={{ fontSize: 13, color: 'var(--ink-mute)' }}>
-        Tópicos com mais apoios e comentários nos últimos 7 dias. Relatos parecidos aparecem agrupados.
+        Tópicos com mais de um relato do mesmo tipo, no mesmo bloco. Ordenados pelo total de apoios.
       </div>
 
-      {trending.map((t) => (
-        <div key={t.id} className="card clickable" style={{ flexDirection: 'row', gap: 14 }} onClick={() => navigate(`/relato/${t.id}`)}>
-          <div className="trend-rank">{t.rank}</div>
+      {topicosEmAlta.length === 0 && (
+        <div className="empty-state">
+          Ainda não há tópicos em alta. Um tópico aparece aqui quando dois ou mais relatos da mesma categoria
+          são publicados no mesmo bloco.
+        </div>
+      )}
+
+      {topicosEmAlta.map((t, i) => (
+        <div
+          key={t.chave}
+          className="card clickable"
+          style={{ flexDirection: 'row', gap: 14 }}
+          onClick={() => navigate(`/relato/${t.principal.id}`)}
+        >
+          <div className="trend-rank">{String(i + 1).padStart(2, '0')}</div>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span className="badge-cat">{t.cat}</span>
-              {t.status && <StatusBadge status={t.status} />}
-              <span className="mono" style={{ letterSpacing: 0 }}>{t.campus}</span>
+              <span className="badge-cat">{t.principal.cat}</span>
+              <StatusBadge status={t.principal.status} />
+              <span className="mono" style={{ letterSpacing: 0 }}>{t.principal.campus}</span>
             </div>
-            <div style={{ fontSize: 16.5, fontWeight: 600, lineHeight: 1.3, letterSpacing: '-0.01em' }}>{t.titulo}</div>
-            <div className="trend-reason">{t.motivo}</div>
+            <div style={{ fontSize: 16.5, fontWeight: 600, lineHeight: 1.3, letterSpacing: '-0.01em' }}>
+              {tituloDoTopico(t.principal)}
+            </div>
+            <div className="trend-reason">
+              Relato mais apoiado do tópico: “{t.principal.titulo}”.
+            </div>
             <div style={{ display: 'flex', gap: 14, alignItems: 'center' }} className="mono">
               <span style={{ color: 'var(--warn-ink)', background: 'var(--warn-bg)', border: '1px solid var(--warn-border)', borderRadius: 8, padding: '4px 8px', letterSpacing: 0, textTransform: 'none' }}>
-                {t.relatos}
+                {t.relatos} relatos agrupados
               </span>
               <span style={{ letterSpacing: 0, textTransform: 'none' }}>▲ {t.ups}</span>
-              <span style={{ letterSpacing: 0, textTransform: 'none' }}>💬 {t.coments}</span>
+              <span style={{ letterSpacing: 0, textTransform: 'none' }}>💬 {t.comentarios}</span>
             </div>
           </div>
         </div>

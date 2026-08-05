@@ -1,0 +1,205 @@
+rules_version = '2';
+
+// ReclameUFCG — regras de segurança do Firestore.
+//
+// Esta é a camada que realmente protege os dados. Tudo que está no cliente
+// (AppContext, telas) é só experiência de uso: qualquer pessoa consegue falar
+// direto com a API do Firestore, então o que não estiver proibido aqui está
+// permitido de fato.
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function logado() {
+      return request.auth != null;
+    }
+
+    // Só aluno da UFCG com e-mail verificado escreve qualquer coisa.
+    // O domínio varia por centro (@ccc, @ee, @estudante, @ufcg.edu.br…), então
+    // a regra é ter ".ufcg." no meio do domínio ou o domínio começar com "ufcg."
+    // — o mesmo critério de isEmailUFCG() em app/src/time.js.
+    function alunoUFCG() {
+      return logado()
+        && request.auth.token.email_verified == true
+        && (
+          request.auth.token.email.matches('.*@.*[.]ufcg[.].*')
+          || request.auth.token.email.matches('.*@ufcg[.].*')
+        );
+    }
+
+    function ehDono(uid) {
+      return logado() && request.auth.uid == uid;
+    }
+
+    // Administrador = tem um documento em /admins com o próprio uid.
+    // Cria-se na mão pelo console; não existe caminho para o cliente criar.
+    function ehAdmin() {
+      return logado()
+        && exists(/databases/$(db)/documents/admins/$(request.auth.uid));
+    }
+
+    match /admins/{uid} {
+      allow read: if ehDono(uid);
+      allow write: if false;   // só pelo console
+    }
+
+    match /usuarios/{uid} {
+      // Só o dono lê o próprio perfil. As telas não precisam do perfil alheio:
+      // o nome e o curso de quem publicou vão desnormalizados no relato e no
+      // comentário. E-mail, telefone e matrícula não saem daqui — é o que a
+      // tela de cadastro promete.
+      allow read, create, update: if ehDono(uid);
+      allow delete: if false;
+    }
+
+    // Matrícula usada, para não haver duas contas com a mesma. O documento
+    // guarda só o uid de quem registrou: quem consulta descobre no máximo que
+    // a matrícula está tomada, não de quem ela é.
+    //
+    // A unicidade vem de `create` só valer quando o documento ainda não existe
+    // — é o próprio banco garantindo, sem corrida entre duas pessoas
+    // cadastrando ao mesmo tempo.
+    match /matriculas/{matricula} {
+      allow read: if logado();
+      allow create: if logado() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /relatos/{relatoId} {
+
+      // ---- contadores ----------------------------------------------------
+      // nApoios / nDenuncias / nComentarios são espelhos. Ninguém escreve neles
+      // um valor arbitrário: só dá para mexer de 1 em 1, e no caso de apoio e
+      // denúncia o documento correspondente da subcoleção precisa existir
+      // depois da escrita (existsAfter enxerga o resultado do batch inteiro).
+
+      function contadoresIntactos() {
+        return request.resource.data.nApoios == resource.data.nApoios
+          && request.resource.data.nDenuncias == resource.data.nDenuncias
+          && request.resource.data.nDenunciasUrgentes == resource.data.nDenunciasUrgentes
+          && request.resource.data.nComentarios == resource.data.nComentarios;
+      }
+
+      function mexeuSoEm(campos) {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(campos);
+      }
+
+      function apoioDoUsuarioExiste() {
+        return existsAfter(
+          /databases/$(db)/documents/relatos/$(relatoId)/apoios/$(request.auth.uid)
+        );
+      }
+
+      // Apoiar: +1 e o apoio passa a existir. Desapoiar: -1 e o apoio some.
+      function apoioCoerente() {
+        return mexeuSoEm(['nApoios'])
+          && (
+            (request.resource.data.nApoios == resource.data.nApoios + 1 && apoioDoUsuarioExiste())
+            || (request.resource.data.nApoios == resource.data.nApoios - 1 && !apoioDoUsuarioExiste())
+          );
+      }
+
+      // Denúncia só sobe, e só junto com a criação da denúncia da pessoa.
+      //
+      // nDenunciasUrgentes é público (nDenuncias em si não é) porque a tela
+      // precisa saber que o relato entrou em revisão imediata por exposição de
+      // dado pessoal, sem poder ler o motivo que cada pessoa escolheu.
+      function denunciaCoerente() {
+        return mexeuSoEm(['nDenuncias', 'nDenunciasUrgentes'])
+          && request.resource.data.nDenuncias == resource.data.nDenuncias + 1
+          && (
+            request.resource.data.nDenunciasUrgentes == resource.data.nDenunciasUrgentes
+            || request.resource.data.nDenunciasUrgentes == resource.data.nDenunciasUrgentes + 1
+          )
+          && existsAfter(
+            /databases/$(db)/documents/relatos/$(relatoId)/denuncias/$(request.auth.uid)
+          );
+      }
+
+      // Comentário não tem id previsível, então aqui a garantia é só o passo de 1.
+      // Inflar essa contagem é cosmético — não muda permissão nem moderação.
+      function comentarioCoerente() {
+        return mexeuSoEm(['nComentarios'])
+          && (
+            request.resource.data.nComentarios == resource.data.nComentarios + 1
+            || request.resource.data.nComentarios == resource.data.nComentarios - 1
+          );
+      }
+
+      // ---- documento do relato -------------------------------------------
+
+      allow read: if true;   // ler o feed não exige conta
+
+      allow create: if alunoUFCG()
+                    && request.resource.data.autorUid == request.auth.uid
+                    && request.resource.data.nApoios == 0
+                    && request.resource.data.nDenuncias == 0
+                    && request.resource.data.nDenunciasUrgentes == 0
+                    && request.resource.data.nComentarios == 0;
+
+      // Só o autor edita o conteúdo — e nem ele encosta nos contadores
+      // ou troca o dono do relato.
+      allow update: if alunoUFCG()
+                    && resource.data.autorUid == request.auth.uid
+                    && request.resource.data.autorUid == resource.data.autorUid
+                    && contadoresIntactos();
+
+      // Qualquer aluno verificado mexe nos contadores, dentro das regras acima.
+      allow update: if alunoUFCG()
+                    && (apoioCoerente() || denunciaCoerente() || comentarioCoerente());
+
+      allow delete: if (alunoUFCG() && resource.data.autorUid == request.auth.uid)
+                    || ehAdmin();
+
+      match /apoios/{uid} {
+        allow read: if true;
+        // O uid como id do documento é o que impede apoiar 100 vezes.
+        // O campo `uid` repete o id porque a consulta por grupo de coleção
+        // (lá embaixo) filtra por campo, não por id.
+        allow create: if alunoUFCG() && request.auth.uid == uid
+                      && request.resource.data.uid == uid;
+        allow delete: if alunoUFCG() && request.auth.uid == uid;
+        allow update: if false;
+      }
+
+      match /comentarios/{comentarioId} {
+        allow read: if true;
+        allow create: if alunoUFCG()
+                      && request.resource.data.autorUid == request.auth.uid;
+        allow update: if false;
+        allow delete: if (alunoUFCG() && resource.data.autorUid == request.auth.uid)
+                      || ehAdmin();
+      }
+
+      match /denuncias/{uid} {
+        // Ninguém lê a denúncia dos outros; a contagem pública sai de nDenuncias.
+        // O administrador lê tudo para poder moderar.
+        allow read: if ehDono(uid) || ehAdmin();
+        allow create: if alunoUFCG() && request.auth.uid == uid
+                      && request.resource.data.uid == uid;
+        allow update, delete: if false;
+      }
+    }
+
+    // ---- consultas por grupo de coleção ------------------------------------
+    // O app precisa saber, de uma vez só, em quais relatos a pessoa já apoiou /
+    // já denunciou, e listar os próprios comentários. Isso usa collectionGroup,
+    // que NÃO passa pelas regras aninhadas acima — precisa destas.
+    //
+    // A condição é sobre um campo (não sobre o id do documento) porque o
+    // Firestore só aceita a consulta quando consegue provar, a partir do filtro
+    // where(), que ela devolve apenas documentos permitidos.
+
+    match /{caminho=**}/apoios/{uid} {
+      allow read: if true;
+    }
+
+    match /{caminho=**}/denuncias/{uid} {
+      // A tela de moderação lê todas; qualquer outra pessoa, só as próprias.
+      allow read: if ehAdmin() || (logado() && resource.data.uid == request.auth.uid);
+    }
+
+    match /{caminho=**}/comentarios/{comentarioId} {
+      allow read: if true;
+    }
+  }
+}

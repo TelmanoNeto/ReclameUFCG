@@ -1,44 +1,155 @@
 export const CATS = ['Banheiros', 'Salas de aula', 'Estrutura', 'Acessibilidade', 'Climatização', 'Alimentação', 'Laboratórios', 'Iluminação', 'Internet'];
 export const CAMPI = ['Campina Grande', 'Cajazeiras', 'Cuité', 'Patos', 'Pombal', 'Sousa', 'Sumé'];
 
-// Locais de reclamação por campus, agrupados pelo centro a que pertencem.
-// Os centros de cada campus estão corretos; a lista de blocos dentro de cada
-// centro é a base para o protótipo e deve ser conferida com a planta oficial
-// da UFCG antes de ir para produção.
+// Locais de reclamação por campus.
+//
+// Campina Grande (sede) segue a legenda do mapa oficial da Prefeitura
+// Universitária (prefeitura.ufcg.edu.br/mapas, arquivo Campina_Grande_Horizontal.pdf,
+// conferido em 04/08/2026): todos os blocos com sigla, na íntegra.
+//
+// O agrupamento é por SETOR (A, B, C), como no mapa — não por centro. Boa parte
+// dos prédios não pertence a centro nenhum (CAA, CK, CL, CM, os laboratórios do
+// setor C), então agrupar por centro obrigaria a inventar vínculos que a planta
+// não afirma. Blocos sem nome na legenda ficam só com a sigla, de propósito.
+//
+// Os demais campi ainda seguem a estrutura por centro do protótipo e continuam
+// pendentes de conferência com a planta de cada um.
 export const LOCAIS_POR_CAMPUS = {
   'Campina Grande': [
     {
-      grupo: 'CCT · Centro de Ciências e Tecnologia',
+      grupo: 'Setor A · Administração e convivência',
       locais: [
-        'CCT · Bloco CA', 'CCT · Bloco CB', 'CCT · Bloco CC', 'CCT · Bloco CD',
-        'CCT · Bloco CE', 'CCT · Bloco CF', 'CCT · Bloco CG', 'CCT · Bloco CN',
-        'CCT · Pavilhões de Aulas', 'CCT · Estacionamento norte', 'CCT · Estacionamento sul'
+        'Bloco AA · Reitoria',
+        'Bloco AB · Administrativo',
+        'Bloco AC · Restaurante Universitário',
+        'Bloco AD · Biblioteca Central',
+        'Bloco AE · Ginásio de Esportes',
+        'Bloco AF · Smart Campus',
+        'Bloco AF 1 · Caixa Econômica',
+        'Bloco AG · Engenharia (PU)',
+        'Bloco AH · Posto Médico',
+        'Bloco AI · Banco do Brasil',
+        'Bloco AJ · Prefeitura Universitária',
+        'Bloco AJ 1 · Apoio',
+        'Bloco AK · CredUni',
+        'Bloco AL · Centro de Extensão',
+        'Bloco AL 1 · Centro de Eventos Rosa Tânia',
+        'Bloco AO · Licitação',
+        'Bloco AO 1 · Cabine de Medição',
+        'Arquivo Setorial',
+        'SIASS'
       ]
     },
     {
-      grupo: 'CEEI · Centro de Engenharia Elétrica e Informática',
+      grupo: 'Setor B · Humanidades, engenharias e laboratórios',
       locais: [
-        'CEEI · Bloco CO', 'CEEI · Bloco CN', 'CEEI · Laboratórios de Computação',
-        'CEEI · Laboratório LIEC', 'CEEI · Auditório'
+        'Bloco BA · Centro de Humanidades / Central de Línguas / DART',
+        'Bloco BB · Controle Acadêmico',
+        'Bloco BC · Central de Aulas',
+        'Bloco BC 1 · Ambiente de Professor CH',
+        'Bloco BD · Central de Aulas',
+        'Bloco BE · Creche Pré-Escola',
+        'Bloco BF · Centro Gemológico do Nordeste',
+        'Bloco BF 1 · Unidade Acadêmica de Música',
+        'Bloco BF 2 · Mineralogia',
+        'Bloco BG · Central de Aulas',
+        'Bloco BH · História e Geografia',
+        'Bloco BI · Laboratório de Solos',
+        'Bloco BJ · Engenharia Mecânica',
+        'Bloco BK · Espaço de Ensaios',
+        'Bloco BK 1 · Engenharia de Produção',
+        'Bloco BL · Oficinas Mecânicas',
+        'Bloco BM · Almoxarifado',
+        'Bloco BN · Engenharia Elétrica',
+        'Bloco BO · Unidade Acadêmica de Design',
+        'Bloco BP · ATECEL',
+        'Bloco BQ · Pró-Reitorias',
+        'Bloco BR · Laboratório de Máquinas e Motores',
+        'Bloco BS · Mineralogia',
+        'Bloco BT · Ecologia',
+        'Bloco BU · Hidráulica',
+        'Bloco BV · SINTESP-PB',
+        'Bloco BV 1 · ADUFCG',
+        'Bloco BW · SINTESU UFCG',
+        'Bloco BW 1 · LAM · Análise de Minerais',
+        'Bloco BX · Laboratório de Crustáceos',
+        'Bloco BZ · Central de Aulas',
+        'Apicultura',
+        'Design (anexo)',
+        'LabInf',
+        'Museu do Semiárido'
       ]
     },
     {
-      grupo: 'CH · Centro de Humanidades',
-      locais: ['CH · Bloco BC', 'CH · Bloco BB', 'CH · Bloco BS', 'CH · Auditório']
-    },
-    {
-      grupo: 'CCBS · Centro de Ciências Biológicas e da Saúde',
-      locais: ['CCBS · Bloco BJ', 'CCBS · Laboratórios', 'Hospital Universitário Alcides Carneiro']
-    },
-    {
-      grupo: 'CTRN · Centro de Tecnologia e Recursos Naturais',
-      locais: ['CTRN · Bloco CJ', 'CTRN · Bloco CM', 'CTRN · Laboratórios']
-    },
-    {
-      grupo: 'Áreas comuns',
+      grupo: 'Setor C · CCT, CEEI e laboratórios',
       locais: [
-        'RU · Restaurante Universitário', 'Biblioteca Central', 'Setor de Aulas',
-        'Ginásio de Esportes', 'Reitoria', 'Praça central', 'Portaria principal'
+        'Bloco CA · Central de Aulas',
+        'Bloco CA 1 · Petróleo',
+        'Bloco CAA · Central de Aulas',
+        'Bloco CB · REENGE · Central de Aulas',
+        'Bloco CD · Central de Aulas / Estatística',
+        'Bloco CE · Central Telefônica',
+        'Bloco CF · Grupos de Sistemas Elétricos',
+        'Bloco CG · Laboratório de Elétrica',
+        'Bloco CH · Laboratório de Elétrica',
+        'Bloco CH 1 · LARCA',
+        'Bloco CJ 1 · Metrologia (anexo)',
+        'Bloco CK',
+        'Bloco CL',
+        'Bloco CM',
+        'Bloco CN',
+        'Bloco CO · LSD',
+        'Bloco CP · Laboratório de Informática / Agroambiental',
+        'Bloco CQ · Diretoria do CCT',
+        'Bloco CR · Laboratório de Hidráulica',
+        'Bloco CS · Laboratório de Irrigação e Salinidade',
+        'Bloco CT · Laboratório de Engenharia Civil',
+        'Bloco CV · Laboratório de Saneamento',
+        'Bloco CV 1 · Laboratório de Caracterização',
+        'Bloco CV 2',
+        'Bloco CW · Arquitetura',
+        'Bloco CW 2 · Química',
+        'Bloco CX · Laboratório de Química',
+        'Bloco CX 1 · Matemática',
+        'Bloco CY · Laboratório de Física',
+        'Bloco CY 1 · Física',
+        'Bloco CZ · Engenharia Agrícola',
+        'Bloco CZ 1 · Laboratório de Beneficiamento de Sementes',
+        'Agroindustrial',
+        'CEEI',
+        'CERNE',
+        'Embedded · Nokia',
+        'Engenharia de Alimentos',
+        'Engenharia de Produção',
+        'Estufa',
+        'Fontes Renováveis',
+        'IECOM',
+        'IQUANTA',
+        'LabDes',
+        'Laboratório de Criogenia',
+        'Laboratório Multiusuário',
+        'LabPetri',
+        'Laboratórios CEEI',
+        'Metrologia',
+        'Resíduos Sólidos',
+        'Sistema de Potência',
+        'Subestação'
+      ]
+    },
+    {
+      grupo: 'Áreas comuns e setor esportivo',
+      locais: [
+        'Bancos',
+        'Campo de futebol',
+        'Centro Esportivo',
+        'Coreto',
+        'Estacionamento',
+        'Guarita',
+        'Praça das Engenharias',
+        'Quadra de areia',
+        'Quadra de tênis',
+        'Quiosques',
+        'Hospital Universitário Alcides Carneiro'
       ]
     }
   ],
@@ -111,7 +222,110 @@ export function locaisDoCampus(campus) {
 }
 
 export const MATRICULA_DIGITOS = 9;
-export const CURSOS = ['Ciência da Computação', 'Engenharia Elétrica', 'Engenharia Civil', 'Medicina', 'Direito', 'Letras', 'Engenharia de Materiais'];
+
+// Cursos de graduação por campus. Confira com o catálogo oficial da UFCG antes
+// de ir para produção: a oferta muda a cada ano e alguns cursos têm
+// habilitações separadas (licenciatura/bacharelado, diurno/noturno).
+export const CURSOS_POR_CAMPUS = {
+  'Campina Grande': [
+    'Administração',
+    'Arquivologia',
+    'Arte e Mídia',
+    'Ciência da Computação',
+    'Ciências Biológicas',
+    'Ciências Econômicas',
+    'Ciências Sociais',
+    'Comunicação Social — Jornalismo',
+    'Design',
+    'Direito',
+    'Enfermagem',
+    'Engenharia Agrícola',
+    'Engenharia Civil',
+    'Engenharia de Alimentos',
+    'Engenharia de Biotecnologia e Bioprocessos',
+    'Engenharia de Materiais',
+    'Engenharia de Minas',
+    'Engenharia de Petróleo',
+    'Engenharia de Produção',
+    'Engenharia Elétrica',
+    'Engenharia Mecânica',
+    'Engenharia Química',
+    'Estatística',
+    'Farmácia',
+    'Filosofia',
+    'Física',
+    'Geografia',
+    'História',
+    'Letras — Língua Inglesa',
+    'Letras — Língua Portuguesa',
+    'Matemática',
+    'Medicina',
+    'Meteorologia',
+    'Música',
+    'Nutrição',
+    'Odontologia',
+    'Pedagogia',
+    'Psicologia',
+    'Química',
+    'Serviço Social'
+  ],
+  Cajazeiras: [
+    'Ciências Biológicas',
+    'Enfermagem',
+    'Física',
+    'Geografia',
+    'História',
+    'Letras — Língua Inglesa',
+    'Letras — Língua Portuguesa',
+    'Matemática',
+    'Medicina',
+    'Pedagogia'
+  ],
+  Cuité: [
+    'Ciências Biológicas',
+    'Enfermagem',
+    'Farmácia',
+    'Física',
+    'Matemática',
+    'Nutrição',
+    'Química'
+  ],
+  Patos: [
+    'Engenharia Florestal',
+    'Medicina Veterinária'
+  ],
+  Pombal: [
+    'Agronomia',
+    'Engenharia Ambiental',
+    'Engenharia de Alimentos',
+    'Engenharia de Biossistemas',
+    'Engenharia Civil'
+  ],
+  Sousa: [
+    'Administração',
+    'Ciências Contábeis',
+    'Direito',
+    'Serviço Social'
+  ],
+  Sumé: [
+    'Agroecologia',
+    'Ciências Sociais',
+    'Engenharia de Biossistemas',
+    'Engenharia de Produção',
+    'Gestão Pública',
+    'Licenciatura em Ciências Sociais',
+    'Tecnologia em Agroecologia'
+  ]
+};
+
+export function cursosDoCampus(campus) {
+  return CURSOS_POR_CAMPUS[campus] || [];
+}
+
+// Lista plana, sem repetições — usada nos filtros do feed.
+export const CURSOS = [...new Set(Object.values(CURSOS_POR_CAMPUS).flat())].sort((a, b) =>
+  a.localeCompare(b, 'pt-BR')
+);
 // Do período mais recente (2026.2) até 2017.1, em ordem decrescente.
 export const PERIODOS = (() => {
   const out = [];
@@ -135,130 +349,59 @@ export function statusInfo(id) {
 
 export const MAX_FOTOS = 4;
 
-export const POSTS = [
+export const REGRAS = [
   {
-    id: 'cn302', cat: 'Climatização', campus: 'Campina Grande', curso: 'Engenharia Elétrica',
-    local: 'CCT · Bloco CN · Sala 302', quando: 'há 2 h', ups: 214, status: 'parcial',
-    fotos: [
-      { cat: 'Climatização', label: 'termômetro na CN 302' },
-      { cat: 'Salas de aula', label: 'a sala às 14h' }
-    ],
-    similares: 4,
-    autor: 'Rafael Beltrão · Eng. Elétrica',
-    titulo: 'Ar-condicionado da CN 302 parado há três semanas',
-    resumo: 'Sala com 60 alunos sem climatização desde o fim de junho; dois chamados abertos, nenhum retorno.',
-    texto: 'O ar da 302 parou na última semana de junho e até hoje ninguém apareceu.\n\nÀs 14h a sala tem 60 pessoas em aula de Circuitos, janela que não abre e projetor ligado. Medi 34°C com o termômetro do laboratório. Metade da turma sai antes do intervalo, e quem fica não consegue prestar atenção em nada.\n\nJá abrimos chamado duas vezes pelo formulário do centro. Nenhuma resposta.',
-    comentarios: [
-      { autor: 'Juliana Prado', iniciais: 'JP', quando: 'há 1 h', texto: 'Mesma coisa na 304. A gente trocou de sala por conta própria semana passada.' },
-      { autor: 'Débora Lins · Eng. Elétrica', iniciais: 'DL', quando: 'há 48 min', texto: 'Levei ventilador de casa. Isso não deveria ser normal.' },
-      { autor: 'Caio Ferreira · Eng. Materiais', iniciais: 'CF', quando: 'há 20 min', texto: 'Se todo mundo do CN relatar, dá pra mostrar que é o bloco inteiro e não uma sala.' }
-    ]
+    titulo: 'Acusação precisa de fato verificável',
+    texto: 'Descreva o que aconteceu, onde e quando. Relato é sobre o problema — não sobre opinião a respeito de uma pessoa.'
   },
   {
-    id: 'ru-fila', cat: 'Alimentação', campus: 'Campina Grande', curso: 'Ciência da Computação',
-    local: 'RU · Campus Campina Grande', quando: 'há 5 h', ups: 341, status: 'nao_resolvida',
-    fotos: [{ cat: 'Alimentação', label: 'fila do RU às 11h50' }],
-    similares: 6,
-    autor: 'Camila Serrano · CC',
-    titulo: 'Fila do RU passa de 40 minutos no almoço',
-    resumo: 'Fila dobra o corredor entre 11h30 e 12h30; quem tem aula às 13h come em pé ou desiste.',
-    texto: 'Cheguei 11h40 e saí com a bandeja 12h27. A fila dobra o corredor inteiro e não tem cobertura, então em dia de sol é castigo.\n\nQuem tem aula às 13h no CCT simplesmente não consegue almoçar. Duas catracas para o campus inteiro não fecha a conta.',
-    comentarios: [
-      { autor: 'Marina Vasconcelos · CC', iniciais: 'MV', quando: 'há 3 h', texto: 'Segunda e quinta é pior. Parece que o cardápio desses dias puxa mais gente.' },
-      { autor: 'Igor Wanderley · CC', iniciais: 'IW', quando: 'há 2 h', texto: 'Abrir a segunda entrada resolveria metade do problema.' }
-    ]
+    titulo: 'Nada de dado pessoal de terceiros',
+    texto: 'Não publique nome de servidor, foto de rosto, telefone, matrícula ou endereço de outra pessoa. Descreva o cargo ou o setor, não o indivíduo.'
   },
   {
-    id: 'papel-cg', cat: 'Banheiros', campus: 'Campina Grande', curso: 'Engenharia Civil',
-    local: 'CCT · Bloco CG · Térreo', quando: 'há 7 h', ups: 186, status: 'nao_resolvida',
-    fotos: [], similares: 12,
-    autor: 'Otávio Duarte · Eng. Civil',
-    titulo: 'Banheiro masculino do CG está sem papel desde segunda',
-    resumo: 'Sem papel higiênico e sem sabão a semana inteira; é o único banheiro do térreo do bloco.',
-    texto: 'Segunda de manhã já não tinha. Hoje é quinta e continua igual: sem papel, sem sabão, e a torneira do meio pinga sem parar.\n\nÉ o único banheiro do térreo do CG, usado por todo mundo que tem aula no bloco.',
-    comentarios: [
-      { autor: 'Pedro Aquino · Eng. Civil', iniciais: 'PA', quando: 'há 5 h', texto: 'No CN é a mesma história. Já virei rotina levar papel na mochila.' }
-    ]
+    titulo: 'Sem ofensa pessoal',
+    texto: 'Criticar a estrutura, a gestão e o serviço é o objetivo do app. Xingar, humilhar ou ameaçar alguém, não.'
   },
   {
-    id: 'rampa-bc', cat: 'Acessibilidade', campus: 'Campina Grande', curso: 'Direito',
-    local: 'CH · Bloco BC · Entrada lateral', quando: 'há 1 d', ups: 97, status: 'nao_resolvida',
-    fotos: [
-      { cat: 'Acessibilidade', label: 'degrau no fim da rampa' },
-      { cat: 'Salas de aula', label: 'corredor logo depois da rampa' },
-      { cat: 'Iluminação', label: 'mesma entrada à noite' }
-    ],
-    similares: 3,
-    autor: 'Lúcia Peixoto · Direito',
-    titulo: 'A rampa do BC termina em um degrau de 12 cm',
-    resumo: 'A única rampa da entrada lateral desemboca num degrau — cadeirante não completa o percurso sozinho.',
-    texto: 'A rampa foi feita, está lá, com corrimão e tudo. Só que no fim dela tem um degrau de uns 12 cm até o piso do corredor.\n\nNa prática, quem usa cadeira de rodas precisa de ajuda justamente no último metro. Uma colega da turma depende de alguém empurrar todo dia.',
-    comentarios: [
-      { autor: 'Lívia Nunes · Letras', iniciais: 'LN', quando: 'há 22 h', texto: 'Já vi gente quase capotar ali. É perigoso, não só incômodo.' },
-      { autor: 'Rafaela Cunha · Direito', iniciais: 'RC', quando: 'há 18 h', texto: 'Uma rampinha de concreto de meio metro resolveria.' }
-    ]
-  },
-  {
-    id: 'wifi-cj', cat: 'Internet', campus: 'Campina Grande', curso: 'Engenharia de Materiais',
-    local: 'CTRN · Bloco CJ', quando: 'há 1 d', ups: 128, status: 'resolvida',
-    fotos: [], similares: 0,
-    autor: 'Thiago Melo · Eng. de Materiais',
-    titulo: 'Wi-Fi do CJ cai todo dia depois das 15h',
-    resumo: 'Queda diária no turno da tarde; laboratório com aula prática dependente de acesso remoto fica parado.',
-    texto: 'Todo dia por volta das 15h a rede do CJ some por 20 a 40 minutos. Acontece de segunda a sexta.\n\nA aula prática de simulação depende de acessar o servidor do laboratório. Quando cai, a aula acaba ali.',
-    comentarios: [
-      { autor: 'Newton Barros · Eng. Materiais', iniciais: 'NB', quando: 'há 20 h', texto: 'Uso dados do celular pra conseguir entregar as coisas. Sai caro.' }
-    ]
-  },
-  {
-    id: 'luz-estac', cat: 'Iluminação', campus: 'Campina Grande', curso: 'Medicina',
-    local: 'CCT · Estacionamento norte', quando: 'há 2 d', ups: 154, status: 'parcial',
-    fotos: [
-      { cat: 'Iluminação', label: 'estacionamento às 19h' },
-      { cat: 'Acessibilidade', label: 'trajeto até o portão' },
-      { cat: 'Salas de aula', label: 'saída da aula das 22h' },
-      { cat: 'Internet', label: 'poste sem lâmpada' }
-    ],
-    similares: 0,
-    autor: 'Vitor Hugo Alencar · Medicina',
-    titulo: 'Estacionamento norte do CCT está no escuro desde o recesso',
-    resumo: 'Seis postes apagados na saída das aulas da noite; alunas relatam evitar o trajeto sozinhas.',
-    texto: 'Contei seis postes apagados. Quem sai da aula às 22h atravessa o estacionamento inteiro no escuro até o portão.\n\nVárias meninas da turma passaram a esperar em grupo pra sair. Não deveria ser assim.',
-    comentarios: [
-      { autor: 'Bianca Rocha · Medicina', iniciais: 'BR', quando: 'há 1 d', texto: 'Peço carona até o portão todo dia. É constrangedor ter que fazer isso.' }
-    ]
-  },
-  {
-    id: 'bebedouro', cat: 'Salas de aula', campus: 'Campina Grande', curso: 'Ciência da Computação',
-    local: 'Setor de Aulas · Corredor B', quando: 'há 3 d', ups: 63, status: 'resolvida',
-    fotos: [], similares: 0,
-    autor: 'Marina Vasconcelos · CC',
-    titulo: 'Bebedouro do corredor B só solta água quente',
-    resumo: 'Único bebedouro do corredor sem refrigeração há um mês.',
-    texto: 'O bebedouro do corredor B está sem refrigerar há mais de um mês. Sai água quente, no calor de Campina.\n\nÉ o único do corredor. O de baixo está interditado desde o semestre passado.',
-    comentarios: []
-  },
-  {
-    id: 'capela-quimica', cat: 'Laboratórios', campus: 'Cuité', curso: 'Medicina',
-    local: 'CES · Laboratório de Química II', quando: 'há 4 d', ups: 74, status: 'nao_resolvida',
-    fotos: [{ cat: 'Laboratórios', label: 'capela de exaustão desligada' }],
-    similares: 0,
-    autor: 'Sofia Rangel · Medicina',
-    titulo: 'Capela de exaustão do Química II não liga',
-    resumo: 'Prática com solventes acontece sem exaustão funcionando; turma faz o experimento com as janelas abertas.',
-    texto: 'A capela não liga desde o começo do período. A prática de solventes foi feita com as janelas abertas e um ventilador de pé.\n\nAlém do risco, metade da turma saiu com dor de cabeça.',
-    comentarios: [
-      { autor: 'Helena Braga · Medicina', iniciais: 'HB', quando: 'há 3 d', texto: 'Isso é questão de segurança, não de conforto.' }
-    ]
+    titulo: 'Só problemas da UFCG',
+    texto: 'O relato precisa ser sobre um campus, um bloco ou um serviço da universidade.'
   }
 ];
 
-export const TRENDING_META = [
-  { id: 'papel-cg', titulo: 'Falta de papel e sabão nos banheiros do CCT', motivo: '12 relatos parecidos nos últimos 7 dias, concentrados nos blocos CG e CN — todos no térreo.', relatos: '12 relatos semelhantes', coments: 88 },
-  { id: 'ru-fila', titulo: 'Fila e capacidade do RU no almoço', motivo: '341 apoios em 72 h, com picos toda segunda e quinta entre 11h30 e 12h30.', relatos: '6 relatos semelhantes', coments: 64 },
-  { id: 'cn302', titulo: 'Climatização das salas do Bloco CN', motivo: '4 salas diferentes relatadas na mesma semana; a 302 concentra a maior parte dos comentários.', relatos: '4 relatos semelhantes', coments: 51 },
-  { id: 'rampa-bc', titulo: 'Acessibilidade das entradas do CH', motivo: 'Menos relatos que os outros tópicos, mas taxa de comentários 3× acima da média do feed.', relatos: '3 relatos semelhantes', coments: 37 }
+// Motivos de denúncia. `urgente` = o dano não dá para desfazer depois, então
+// uma única denúncia já coloca o relato em revisão.
+export const MOTIVOS_DENUNCIA = [
+  { id: 'dado_pessoal', label: 'Expõe dado pessoal de alguém', urgente: true },
+  { id: 'ofensa', label: 'Ofensa, ameaça ou discurso de ódio', urgente: false },
+  { id: 'falso', label: 'Informação falsa ou de má-fé', urgente: false },
+  { id: 'fora_do_escopo', label: 'Não é sobre a UFCG', urgente: false }
 ];
+
+export function motivoInfo(id) {
+  return MOTIVOS_DENUNCIA.find((m) => m.id === id) || null;
+}
+
+// Quantas denúncias colocam um relato em revisão.
+// Até 30 apoios vale o mínimo fixo; a partir daí, 10% dos apoios.
+// A parte proporcional é o que protege contra denúncia em massa: um relato com
+// 300 apoios tem apoio real da comunidade e precisa de 30 denúncias, não de 3.
+export const DENUNCIA_MINIMO = 3;
+export const DENUNCIA_PERCENTUAL = 0.1;
+
+export function limiarDenuncias(apoios) {
+  return Math.max(DENUNCIA_MINIMO, Math.ceil((apoios || 0) * DENUNCIA_PERCENTUAL));
+}
+
+// Dois relatos são "semelhantes" quando são da mesma categoria, no mesmo campus
+// e no mesmo bloco. O número da sala é descartado: 'CCT · Bloco CN · Sala 302'
+// e 'CCT · Bloco CN · Sala 304' são o mesmo tópico.
+export function localBase(local) {
+  return (local || '').split(' · ').slice(0, 2).join(' · ');
+}
+
+export function chaveDoTopico(post) {
+  return `${post.cat}|${post.campus}|${localBase(post.local)}`;
+}
 
 // Os 8 temas do modo assistido saem da contagem das respostas do formulário de
 // validação (41 respostas): banheiro 24, equipamento de sala 16, estrutura 14,
